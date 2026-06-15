@@ -6,7 +6,8 @@
 --   2. Replace CHANGE_FAMILY_PIN with your real family read-only PIN.
 --   3. Do not paste service_role keys, secret keys, or database passwords into frontend files.
 
-create extension if not exists pgcrypto;
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 
 create table if not exists public.workshop_pins (
   role text primary key check (role in ('admin', 'family')),
@@ -21,6 +22,25 @@ create table if not exists public.workshop_sessions (
   expires_at timestamptz not null
 );
 
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'workshop_sessions'
+      and column_name = 'token'
+  ) and not exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'workshop_sessions'
+      and column_name = 'token_hash'
+  ) then
+    alter table public.workshop_sessions rename column token to token_hash;
+  end if;
+end $$;
+
 create table if not exists public.workshop_login_attempts (
   id bigint generated always as identity primary key,
   ok boolean not null default false,
@@ -34,7 +54,7 @@ create table if not exists public.workshop_state (
 );
 
 create table if not exists public.workshop_photos (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key default extensions.gen_random_uuid(),
   item_id text not null check (char_length(item_id) between 1 and 32),
   file_name text not null default 'photo.jpg',
   mime_type text not null default 'image/jpeg',
@@ -79,8 +99,8 @@ begin
 
   insert into public.workshop_pins (role, pin_hash)
   values
-    ('admin', crypt('admin:' || v_admin_pin, gen_salt('bf', 12))),
-    ('family', crypt('family:' || v_family_pin, gen_salt('bf', 12)))
+    ('admin', extensions.crypt('admin:' || v_admin_pin, extensions.gen_salt('bf', 12))),
+    ('family', extensions.crypt('family:' || v_family_pin, extensions.gen_salt('bf', 12)))
   on conflict (role) do update
   set pin_hash = excluded.pin_hash,
       updated_at = now();
@@ -110,26 +130,26 @@ begin
     and created_at > now() - interval '1 minute';
 
   if v_failed_attempts >= 30 then
-    return jsonb_build_object('ok', false, 'message', 'PIN 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.');
+    return jsonb_build_object('ok', false, 'message', 'Too many PIN attempts. Try again shortly.');
   end if;
 
   if p_pin is null or length(trim(p_pin)) < 4 or length(trim(p_pin)) > 128 then
     insert into public.workshop_login_attempts(ok) values (false);
-    return jsonb_build_object('ok', false, 'message', 'PIN을 확인해주세요.');
+    return jsonb_build_object('ok', false, 'message', 'Check your PIN.');
   end if;
 
   select role into v_role
   from public.workshop_pins
-  where pin_hash = crypt(role || ':' || trim(p_pin), pin_hash)
+  where pin_hash = extensions.crypt(role || ':' || trim(p_pin), pin_hash)
   limit 1;
 
   if v_role is null then
     insert into public.workshop_login_attempts(ok) values (false);
-    return jsonb_build_object('ok', false, 'message', 'PIN이 올바르지 않습니다.');
+    return jsonb_build_object('ok', false, 'message', 'PIN is not correct.');
   end if;
 
-  v_token := encode(gen_random_bytes(32), 'hex');
-  v_token_hash := encode(digest(v_token, 'sha256'), 'hex');
+  v_token := encode(extensions.gen_random_bytes(32), 'hex');
+  v_token_hash := encode(extensions.digest(v_token, 'sha256'), 'hex');
 
   insert into public.workshop_sessions(token_hash, role, expires_at)
   values (v_token_hash, v_role, now() + interval '14 days');
@@ -148,7 +168,7 @@ set search_path = ''
 as $$
 begin
   delete from public.workshop_sessions
-  where token_hash = encode(digest(coalesce(p_token, ''), 'sha256'), 'hex');
+  where token_hash = encode(extensions.digest(coalesce(p_token, ''), 'sha256'), 'hex');
 
   return jsonb_build_object('ok', true);
 end;
@@ -170,11 +190,11 @@ begin
 
   select role into v_role
   from public.workshop_sessions
-  where token_hash = encode(digest(coalesce(p_token, ''), 'sha256'), 'hex')
+  where token_hash = encode(extensions.digest(coalesce(p_token, ''), 'sha256'), 'hex')
     and expires_at > now();
 
   if v_role is null then
-    return jsonb_build_object('ok', false, 'message', '세션이 만료되었습니다. 다시 로그인해주세요.');
+    return jsonb_build_object('ok', false, 'message', 'Session expired. Log in again.');
   end if;
 
   select coalesce(data, '{}'::jsonb) into v_data
@@ -240,15 +260,15 @@ begin
 
   select role into v_role
   from public.workshop_sessions
-  where token_hash = encode(digest(coalesce(p_token, ''), 'sha256'), 'hex')
+  where token_hash = encode(extensions.digest(coalesce(p_token, ''), 'sha256'), 'hex')
     and expires_at > now();
 
   if v_role is null then
-    return jsonb_build_object('ok', false, 'message', '세션이 만료되었습니다. 다시 로그인해주세요.');
+    return jsonb_build_object('ok', false, 'message', 'Session expired. Log in again.');
   end if;
 
   if v_role <> 'admin' then
-    return jsonb_build_object('ok', false, 'message', '관리자만 저장할 수 있습니다.');
+    return jsonb_build_object('ok', false, 'message', 'Only admin can save.');
   end if;
 
   v_clean := jsonb_build_object(
@@ -260,7 +280,7 @@ begin
   );
 
   if pg_column_size(v_clean) > 2000000 then
-    return jsonb_build_object('ok', false, 'message', '저장 데이터가 너무 큽니다. 사진은 사진 업로드 기능으로 저장해주세요.');
+    return jsonb_build_object('ok', false, 'message', 'Saved data is too large. Use photo upload for images.');
   end if;
 
   insert into public.workshop_state(id, data, updated_at)
@@ -295,25 +315,25 @@ begin
 
   select role into v_role
   from public.workshop_sessions
-  where token_hash = encode(digest(coalesce(p_token, ''), 'sha256'), 'hex')
+  where token_hash = encode(extensions.digest(coalesce(p_token, ''), 'sha256'), 'hex')
     and expires_at > now();
 
   if v_role <> 'admin' then
-    return jsonb_build_object('ok', false, 'message', '관리자만 사진을 업로드할 수 있습니다.');
+    return jsonb_build_object('ok', false, 'message', 'Only admin can upload photos.');
   end if;
 
   if p_item_id is null or length(trim(p_item_id)) < 1 or length(trim(p_item_id)) > 32 then
-    return jsonb_build_object('ok', false, 'message', '장소 ID가 올바르지 않습니다.');
+    return jsonb_build_object('ok', false, 'message', 'Place ID is invalid.');
   end if;
 
   if p_mime_type not in ('image/jpeg', 'image/png', 'image/webp') then
-    return jsonb_build_object('ok', false, 'message', '지원하지 않는 이미지 형식입니다.');
+    return jsonb_build_object('ok', false, 'message', 'Image type is not supported.');
   end if;
 
   if p_data_url is null
     or p_data_url not like 'data:image/%;base64,%'
     or char_length(p_data_url) > 1600000 then
-    return jsonb_build_object('ok', false, 'message', '사진 데이터가 너무 크거나 올바르지 않습니다.');
+    return jsonb_build_object('ok', false, 'message', 'Photo data is too large or invalid.');
   end if;
 
   insert into public.workshop_photos(item_id, file_name, mime_type, data_url, shared_with_family)
@@ -355,11 +375,11 @@ begin
 
   select role into v_role
   from public.workshop_sessions
-  where token_hash = encode(digest(coalesce(p_token, ''), 'sha256'), 'hex')
+  where token_hash = encode(extensions.digest(coalesce(p_token, ''), 'sha256'), 'hex')
     and expires_at > now();
 
   if v_role <> 'admin' then
-    return jsonb_build_object('ok', false, 'message', '관리자만 사진을 삭제할 수 있습니다.');
+    return jsonb_build_object('ok', false, 'message', 'Only admin can delete photos.');
   end if;
 
   delete from public.workshop_photos
