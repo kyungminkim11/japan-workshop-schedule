@@ -61,8 +61,31 @@ const DEFAULT_STATE = {
 };
 
 let supabaseClient = null;
-let token = localStorage.getItem("workshopToken") || "";
-let role = localStorage.getItem("workshopRole") || "";
+const storage = {
+  get(key) {
+    try {
+      return window.localStorage?.getItem(key) || "";
+    } catch (_error) {
+      return "";
+    }
+  },
+  set(key, value) {
+    try {
+      window.localStorage?.setItem(key, value);
+    } catch (_error) {
+      // The app still works for the current tab if browser storage is blocked.
+    }
+  },
+  remove(key) {
+    try {
+      window.localStorage?.removeItem(key);
+    } catch (_error) {
+      // Ignore storage cleanup failures in restricted browser modes.
+    }
+  }
+};
+let token = storage.get("workshopToken");
+let role = storage.get("workshopRole");
 let selectedDay = "0617";
 let selectedItem = null;
 let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -85,6 +108,10 @@ function hasConfig() {
 function ensureClient() {
   if (!hasConfig()) {
     setMessage("Supabase 설정을 먼저 완료해주세요.");
+    return false;
+  }
+  if (!window.supabase?.createClient) {
+    setMessage("Supabase 클라이언트 스크립트를 불러오지 못했습니다. 네트워크를 확인한 뒤 새로고침해주세요.", "error");
     return false;
   }
   if (!supabaseClient) {
@@ -152,8 +179,8 @@ async function login(event) {
 
     token = result.token;
     role = result.role;
-    localStorage.setItem("workshopToken", token);
-    localStorage.setItem("workshopRole", role);
+    storage.set("workshopToken", token);
+    storage.set("workshopRole", role);
     $("#pinInput").value = "";
     await loadState();
     setMessage("");
@@ -176,8 +203,8 @@ async function logout() {
   token = "";
   role = "";
   selectedItem = null;
-  localStorage.removeItem("workshopToken");
-  localStorage.removeItem("workshopRole");
+  storage.remove("workshopToken");
+  storage.remove("workshopRole");
   normalizeState(DEFAULT_STATE);
   normalizePhotos([]);
   render();
@@ -195,7 +222,7 @@ async function loadState() {
     }
 
     role = result.role;
-    localStorage.setItem("workshopRole", role);
+    storage.set("workshopRole", role);
     normalizeState(result.data);
     normalizePhotos(result.photos);
     render();
@@ -660,11 +687,17 @@ $("#saveStatusBtn").addEventListener("click", async () => {
   await withSave("상태 저장 완료", () => saveState());
 });
 
+document.documentElement.dataset.workshopAppReady = "true";
+
 if (hasConfig()) {
-  ensureClient();
-  if (token) {
+  const clientReady = ensureClient();
+  if (clientReady && token) {
     loadState();
   } else {
+    if (!clientReady) {
+      token = "";
+      role = "";
+    }
     render();
   }
 } else {
