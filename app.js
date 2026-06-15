@@ -52,6 +52,39 @@ const SHOPPING = [
   "가족 선물"
 ];
 
+const ROUTE_COORDS = {
+  a1: [37.4475, 126.4524],
+  a2: [37.4475, 126.4524],
+  a3: [35.7719, 140.3928],
+  a4: [35.773, 140.387],
+  a5: [35.6662, 139.7586],
+  a6: [35.6635, 139.7598],
+  a7: [35.6909, 139.7003],
+  a8: [35.6915, 139.7044],
+  a9: [35.6926, 139.7028],
+  b1: [35.6635, 139.7598],
+  b2: [35.7044, 139.7921],
+  b3: [35.7043, 139.7905],
+  b4: [35.6967, 139.7596],
+  b5: [35.6719, 139.765],
+  b6: [35.6717, 139.7674],
+  b7: [35.6713, 139.7668],
+  c1: [35.6635, 139.7598],
+  c2: [35.6652, 139.7123],
+  c3: [35.6672, 139.7137],
+  c4: [35.6616, 139.7038],
+  c5: [35.6617, 139.6995],
+  c6: [35.6614, 139.6993],
+  c7: [35.658, 139.7016],
+  d1: [35.6635, 139.7598],
+  d2: [35.679, 139.7642],
+  d3: [35.6812, 139.7671],
+  d4: [35.6798, 139.769],
+  d5: [35.773, 140.3874],
+  d6: [35.773, 140.3874],
+  d7: [37.4475, 126.4524]
+};
+
 const DEFAULT_STATE = {
   notes: {},
   shopping: {},
@@ -91,6 +124,8 @@ let selectedItem = null;
 let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let photos = [];
 let isBusy = false;
+let routeMap = null;
+let routeLayer = null;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -137,6 +172,67 @@ function normalizeState(nextState) {
 
 function normalizePhotos(nextPhotos) {
   photos = Array.isArray(nextPhotos) ? nextPhotos : [];
+}
+
+function getDayItems() {
+  return SCHEDULE.filter((item) => item.day === selectedDay);
+}
+
+function getCoords(item) {
+  return ROUTE_COORDS[item.id] || null;
+}
+
+function getMarkerCoords(item, dayItems) {
+  const coords = getCoords(item);
+  if (!coords) return null;
+
+  const samePlaceItems = dayItems.filter((candidate) => {
+    const candidateCoords = getCoords(candidate);
+    return candidateCoords && candidateCoords[0] === coords[0] && candidateCoords[1] === coords[1];
+  });
+
+  if (samePlaceItems.length <= 1) return coords;
+
+  const offsetIndex = samePlaceItems.findIndex((candidate) => candidate.id === item.id);
+  const spread = 0.0015;
+  const angle = (Math.PI * 2 * offsetIndex) / samePlaceItems.length;
+  return [
+    coords[0] + Math.sin(angle) * spread,
+    coords[1] + Math.cos(angle) * spread
+  ];
+}
+
+function getRouteMapUrl(dayItems) {
+  const points = dayItems.map(getCoords).filter(Boolean);
+  if (!points.length) return "https://maps.google.com/";
+
+  if (points.length === 1) {
+    return `https://maps.google.com/?q=${points[0][0]},${points[0][1]}`;
+  }
+
+  const origin = points[0].join(",");
+  const destination = points[points.length - 1].join(",");
+  const waypoints = points.slice(1, -1).map((point) => point.join(",")).join("|");
+  const params = new URLSearchParams({
+    api: "1",
+    origin,
+    destination,
+    travelmode: "transit"
+  });
+
+  if (waypoints) params.set("waypoints", waypoints);
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+}
+
+function selectScheduleItem(item, { scrollToDetail = false } = {}) {
+  selectedItem = item;
+  render();
+
+  if (scrollToDetail) {
+    window.setTimeout(() => {
+      $("#detailPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }
 }
 
 function setMessage(message, tone = "") {
@@ -266,6 +362,7 @@ function render() {
   });
 
   renderTabs();
+  renderRouteMap();
   renderStatus();
   renderSchedule();
   renderShopping();
@@ -294,6 +391,115 @@ function renderTabs() {
   $("#daySub").textContent = day?.sub || "";
 }
 
+function ensureRouteMap() {
+  if (!window.L || !$("#routeMap")) return false;
+
+  if (!routeMap) {
+    routeMap = window.L.map("routeMap", {
+      scrollWheelZoom: false,
+      zoomControl: false
+    });
+
+    window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(routeMap);
+
+    window.L.control.zoom({ position: "bottomright" }).addTo(routeMap);
+    routeLayer = window.L.layerGroup().addTo(routeMap);
+  }
+
+  window.setTimeout(() => routeMap.invalidateSize(), 0);
+  return true;
+}
+
+function makeMarkerIcon(number, active) {
+  return window.L.divIcon({
+    className: `route-marker-icon${active ? " active" : ""}`,
+    html: `<span>${number}</span>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
+  });
+}
+
+function renderRouteMap() {
+  const dayItems = getDayItems();
+  const routeSummary = $("#routeSummary");
+  const routeStops = $("#routeStops");
+  const routeMapLink = $("#routeMapLink");
+
+  if (routeSummary) {
+    routeSummary.textContent = `${dayItems.length}개 장소 · 번호 순서대로 이동`;
+  }
+
+  if (routeMapLink) {
+    routeMapLink.href = getRouteMapUrl(dayItems);
+  }
+
+  if (routeStops) {
+    routeStops.replaceChildren();
+    dayItems.forEach((item, index) => {
+      const stop = document.createElement("button");
+      stop.type = "button";
+      stop.className = selectedItem?.id === item.id ? "active" : "";
+
+      const number = document.createElement("span");
+      number.textContent = String(index + 1);
+
+      const time = document.createElement("strong");
+      time.textContent = item.time;
+
+      const title = document.createTextNode(item.title);
+      stop.append(number, time, title);
+      stop.addEventListener("click", () => {
+        selectScheduleItem(item, { scrollToDetail: true });
+      });
+      routeStops.appendChild(stop);
+    });
+  }
+
+  if (!ensureRouteMap()) return;
+
+  routeLayer.clearLayers();
+  const routePoints = dayItems.map(getCoords).filter(Boolean);
+  if (!routePoints.length) return;
+
+  if (routePoints.length > 1) {
+    window.L.polyline(routePoints, {
+      color: "#67e8f9",
+      opacity: 0.88,
+      weight: 4
+    }).addTo(routeLayer);
+  }
+
+  dayItems.forEach((item, index) => {
+    const coords = getMarkerCoords(item, dayItems);
+    if (!coords) return;
+
+    const marker = window.L.marker(coords, {
+      icon: makeMarkerIcon(index + 1, selectedItem?.id === item.id),
+      title: `${index + 1}. ${item.title}`
+    }).addTo(routeLayer);
+
+    marker.bindTooltip(`${index + 1}. ${item.time} ${item.title}`, {
+      direction: "top",
+      opacity: 0.95
+    });
+
+    marker.on("click", () => {
+      selectScheduleItem(item, { scrollToDetail: true });
+    });
+  });
+
+  const bounds = window.L.latLngBounds(routePoints);
+  if (routePoints.length === 1) {
+    routeMap.setView(routePoints[0], 14);
+  } else {
+    routeMap.fitBounds(bounds, { padding: [28, 28], maxZoom: 14 });
+  }
+}
+
 function renderStatus() {
   const status = appState.familyStatus || DEFAULT_STATE.familyStatus;
   const box = $("#familyStatusView");
@@ -320,7 +526,7 @@ function renderSchedule() {
   const list = $("#scheduleList");
   list.replaceChildren();
 
-  SCHEDULE.filter((item) => item.day === selectedDay).forEach((item) => {
+  getDayItems().forEach((item) => {
     const card = document.createElement("button");
     card.type = "button";
     card.className = [
@@ -353,8 +559,7 @@ function renderSchedule() {
 
     card.append(time, body);
     card.addEventListener("click", () => {
-      selectedItem = item;
-      render();
+      selectScheduleItem(item, { scrollToDetail: window.matchMedia("(max-width: 860px)").matches });
     });
     list.appendChild(card);
   });

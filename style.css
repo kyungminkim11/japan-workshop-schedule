@@ -58,7 +58,8 @@ a.ghost {
   color: var(--text);
 }
 
-button.small {
+button.small,
+a.small {
   min-height: 36px;
   padding: 8px 10px;
   font-size: 12px;
@@ -226,6 +227,129 @@ h4 {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.route-panel {
+  overflow: hidden;
+}
+
+#routeMap {
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #172033;
+}
+
+.route-stops {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-top: 10px;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.route-stops::-webkit-scrollbar {
+  display: none;
+}
+
+.route-stops button {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  min-width: 190px;
+  max-width: 230px;
+  align-items: center;
+  gap: 2px 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.route-stops button span {
+  display: grid;
+  grid-row: 1 / span 2;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #05212a;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.route-stops button strong {
+  display: block;
+  color: var(--accent-2);
+  font-size: 12px;
+}
+
+.route-stops button.active {
+  border-color: var(--accent);
+  background: #123142;
+}
+
+.route-marker-icon {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #05212a;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.32);
+  color: #05212a;
+  font-weight: 900;
+}
+
+.route-marker-icon.active {
+  background: var(--accent-2);
+  transform: scale(1.12);
+}
+
+.route-marker-icon span {
+  line-height: 1;
+}
+
+.leaflet-container {
+  background: #172033;
+  color: #111827;
+  font-family: inherit;
+}
+
+.leaflet-container a {
+  min-height: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #2563eb;
+  font-weight: inherit;
+  padding: 0;
+}
+
+.leaflet-control-zoom a {
+  width: 30px;
+  min-height: 30px;
+  background: #ffffff;
+  color: #111827;
+  font-weight: 900;
+  line-height: 30px;
+}
+
+.leaflet-tooltip {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.95);
+  box-shadow: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .content-grid {
@@ -428,6 +552,14 @@ h4 {
   .today-card {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  #routeMap {
+    height: 270px;
+  }
+
+  .route-stops button {
+    min-width: 168px;
   }
 
   .login-form {
