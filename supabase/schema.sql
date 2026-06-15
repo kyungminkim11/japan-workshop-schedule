@@ -235,6 +235,7 @@ begin
     'ok', true,
     'role', v_role,
     'data', jsonb_build_object(
+      'schedule', coalesce(v_data->'schedule', 'null'::jsonb),
       'familyStatus', coalesce(v_data->'familyStatus', '{}'::jsonb),
       'checkins', coalesce(v_data->'checkins', '[]'::jsonb),
       'visitDone', coalesce(v_data->'visitDone', '{}'::jsonb)
@@ -273,6 +274,7 @@ begin
 
   v_clean := jsonb_build_object(
     'notes', case when jsonb_typeof(v_input->'notes') = 'object' then v_input->'notes' else '{}'::jsonb end,
+    'schedule', case when jsonb_typeof(v_input->'schedule') = 'array' then v_input->'schedule' else 'null'::jsonb end,
     'shopping', case when jsonb_typeof(v_input->'shopping') = 'object' then v_input->'shopping' else '{}'::jsonb end,
     'visitDone', case when jsonb_typeof(v_input->'visitDone') = 'object' then v_input->'visitDone' else '{}'::jsonb end,
     'checkins', case when jsonb_typeof(v_input->'checkins') = 'array' then v_input->'checkins' else '[]'::jsonb end,
@@ -290,6 +292,53 @@ begin
         updated_at = now();
 
   return jsonb_build_object('ok', true, 'updatedAt', now());
+end;
+$$;
+
+create or replace function public.workshop_update_pin(
+  p_token text,
+  p_role text,
+  p_new_pin text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_role text;
+  v_target_role text := lower(trim(coalesce(p_role, '')));
+  v_pin text := trim(coalesce(p_new_pin, ''));
+begin
+  delete from public.workshop_sessions
+  where expires_at < now();
+
+  select role into v_role
+  from public.workshop_sessions
+  where token_hash = encode(extensions.digest(coalesce(p_token, ''), 'sha256'), 'hex')
+    and expires_at > now();
+
+  if v_role <> 'admin' then
+    return jsonb_build_object('ok', false, 'message', 'Only admin can change PINs.');
+  end if;
+
+  if v_target_role not in ('admin', 'family') then
+    return jsonb_build_object('ok', false, 'message', 'PIN role is invalid.');
+  end if;
+
+  if v_pin !~ '^[0-9]{6,32}$' then
+    return jsonb_build_object('ok', false, 'message', 'PIN must be 6 to 32 digits.');
+  end if;
+
+  update public.workshop_pins
+  set pin_hash = extensions.crypt(v_target_role || ':' || v_pin, extensions.gen_salt('bf', 12)),
+      updated_at = now()
+  where role = v_target_role;
+
+  delete from public.workshop_sessions
+  where role = v_target_role;
+
+  return jsonb_build_object('ok', true, 'role', v_target_role, 'updatedAt', now());
 end;
 $$;
 
@@ -393,6 +442,7 @@ revoke execute on function public.workshop_login(text) from public;
 revoke execute on function public.workshop_logout(text) from public;
 revoke execute on function public.workshop_get_state(text) from public;
 revoke execute on function public.workshop_save_state(text, jsonb) from public;
+revoke execute on function public.workshop_update_pin(text, text, text) from public;
 revoke execute on function public.workshop_add_photo(text, text, text, text, text, boolean) from public;
 revoke execute on function public.workshop_delete_photo(text, uuid) from public;
 
@@ -401,5 +451,6 @@ grant execute on function public.workshop_login(text) to anon, authenticated;
 grant execute on function public.workshop_logout(text) to anon, authenticated;
 grant execute on function public.workshop_get_state(text) to anon, authenticated;
 grant execute on function public.workshop_save_state(text, jsonb) to anon, authenticated;
+grant execute on function public.workshop_update_pin(text, text, text) to anon, authenticated;
 grant execute on function public.workshop_add_photo(text, text, text, text, text, boolean) to anon, authenticated;
 grant execute on function public.workshop_delete_photo(text, uuid) to anon, authenticated;

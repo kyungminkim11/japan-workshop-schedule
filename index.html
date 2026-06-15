@@ -7,7 +7,7 @@
   <meta name="description" content="2026년 6월 17일부터 20일까지 일본 워크샵 일정, 메모, 사진, 체크인을 기록하는 모바일 웹앱" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css?v=20260616-4" />
+  <link rel="stylesheet" href="style.css?v=20260616-5" />
 </head>
 <body>
   <header class="app-header">
@@ -80,6 +80,79 @@
         </div>
       </section>
 
+      <section class="panel admin-only" id="adminAccessPanel" hidden>
+        <h2>접속 코드 관리</h2>
+        <div class="admin-grid">
+          <form id="adminPinForm" class="stacked-form">
+            <h3>관리자 PIN 변경</h3>
+            <label for="adminPinInput">새 관리자 PIN</label>
+            <input id="adminPinInput" type="password" inputmode="numeric" autocomplete="new-password" placeholder="숫자 6자리 이상" />
+            <label for="adminPinConfirm">새 관리자 PIN 확인</label>
+            <input id="adminPinConfirm" type="password" inputmode="numeric" autocomplete="new-password" placeholder="다시 입력" />
+            <button type="submit">관리자 PIN 저장</button>
+          </form>
+          <form id="familyPinForm" class="stacked-form">
+            <h3>가족 PIN 변경</h3>
+            <label for="familyPinInput">새 가족 PIN</label>
+            <input id="familyPinInput" type="password" inputmode="numeric" autocomplete="new-password" placeholder="숫자 6자리 이상" />
+            <label for="familyPinConfirm">새 가족 PIN 확인</label>
+            <input id="familyPinConfirm" type="password" inputmode="numeric" autocomplete="new-password" placeholder="다시 입력" />
+            <button type="submit">가족 PIN 저장</button>
+          </form>
+        </div>
+        <p id="accessMessage" class="message" role="status"></p>
+      </section>
+
+      <section class="panel admin-only" id="adminSchedulePanel" hidden>
+        <div class="panel-title-row">
+          <div>
+            <h2>일정 관리</h2>
+            <p class="muted">일정을 선택해서 수정하거나 새 일정을 추가하면 가족 화면에도 바로 반영됩니다.</p>
+          </div>
+        </div>
+        <form id="scheduleEditorForm" class="schedule-editor">
+          <label>
+            날짜
+            <select id="scheduleDayInput"></select>
+          </label>
+          <label>
+            시간
+            <input id="scheduleTimeInput" placeholder="예: 15:00 또는 16:00~18:30" />
+          </label>
+          <label class="wide">
+            제목
+            <input id="scheduleTitleInput" placeholder="예: 호텔 체크인" />
+          </label>
+          <label class="wide">
+            장소
+            <input id="schedulePlaceInput" placeholder="예: Royal Park Hotel Iconic Tokyo Shiodome" />
+          </label>
+          <label class="wide">
+            구글맵 링크
+            <input id="scheduleMapInput" placeholder="비워두면 장소명으로 자동 생성" />
+          </label>
+          <label>
+            위도
+            <input id="scheduleLatInput" inputmode="decimal" placeholder="예: 35.6635" />
+          </label>
+          <label>
+            경도
+            <input id="scheduleLngInput" inputmode="decimal" placeholder="예: 139.7598" />
+          </label>
+        </form>
+        <div class="button-row schedule-actions">
+          <button id="scheduleSaveBtn" type="button">선택 일정 저장</button>
+          <button id="scheduleAddBtn" class="ghost" type="button">새 일정 추가</button>
+          <button id="scheduleNewBtn" class="ghost" type="button">입력 비우기</button>
+          <button id="scheduleMoveUpBtn" class="ghost" type="button">위로</button>
+          <button id="scheduleMoveDownBtn" class="ghost" type="button">아래로</button>
+          <button id="scheduleDeleteBtn" class="ghost danger" type="button">삭제</button>
+          <button id="scheduleResetDayBtn" class="ghost" type="button">오늘 기본값 복원</button>
+          <button id="scheduleResetAllBtn" class="ghost" type="button">전체 기본값 복원</button>
+        </div>
+        <p id="scheduleEditorMessage" class="message" role="status"></p>
+      </section>
+
       <section class="content-grid">
         <div>
           <section class="panel">
@@ -104,7 +177,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20260616-4"></script>
-  <script src="app.js?v=20260616-4"></script>
+  <script src="config.js?v=20260616-5"></script>
+  <script src="app.js?v=20260616-5"></script>
 </body>
 </html>

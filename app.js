@@ -87,6 +87,7 @@ const ROUTE_COORDS = {
 
 const DEFAULT_STATE = {
   notes: {},
+  schedule: null,
   shopping: {},
   visitDone: {},
   checkins: [],
@@ -163,6 +164,7 @@ function normalizeState(nextState) {
   const incoming = nextState || {};
   appState = {
     notes: { ...DEFAULT_STATE.notes, ...(incoming.notes || {}) },
+    schedule: Array.isArray(incoming.schedule) ? normalizeScheduleItems(incoming.schedule) : null,
     shopping: { ...DEFAULT_STATE.shopping, ...(incoming.shopping || {}) },
     visitDone: { ...DEFAULT_STATE.visitDone, ...(incoming.visitDone || {}) },
     checkins: Array.isArray(incoming.checkins) ? incoming.checkins : [],
@@ -174,11 +176,47 @@ function normalizePhotos(nextPhotos) {
   photos = Array.isArray(nextPhotos) ? nextPhotos : [];
 }
 
+function cloneScheduleItem(item) {
+  const lat = Number(item.lat);
+  const lng = Number(item.lng);
+  return {
+    id: String(item.id || makeScheduleId()).slice(0, 32),
+    day: DAYS.some((day) => day.id === item.day) ? item.day : selectedDay,
+    time: String(item.time || "").trim(),
+    title: String(item.title || "").trim(),
+    place: String(item.place || "").trim(),
+    map: String(item.map || "").trim(),
+    ...(Number.isFinite(lat) ? { lat } : {}),
+    ...(Number.isFinite(lng) ? { lng } : {})
+  };
+}
+
+function normalizeScheduleItems(items) {
+  return items
+    .map(cloneScheduleItem)
+    .filter((item) => item.day && item.time && item.title && item.place)
+    .slice(0, 80);
+}
+
+function getScheduleItems() {
+  return Array.isArray(appState.schedule) ? appState.schedule : SCHEDULE;
+}
+
+function getEditableScheduleItems() {
+  return getScheduleItems().map(cloneScheduleItem);
+}
+
 function getDayItems() {
-  return SCHEDULE.filter((item) => item.day === selectedDay);
+  return getScheduleItems().filter((item) => item.day === selectedDay);
 }
 
 function getCoords(item) {
+  const lat = Number(item.lat);
+  const lng = Number(item.lng);
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return [lat, lng];
+  }
+
   return ROUTE_COORDS[item.id] || null;
 }
 
@@ -233,6 +271,17 @@ function selectScheduleItem(item, { scrollToDetail = false } = {}) {
       $("#detailPanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
   }
+}
+
+function makeScheduleId() {
+  return `x${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`.slice(0, 32);
+}
+
+function mapUrlForItem(item) {
+  const coords = getCoords(item);
+  if (item.map) return item.map;
+  if (coords) return `https://maps.google.com/?q=${coords[0]},${coords[1]}`;
+  return `https://maps.google.com/?q=${encodeURIComponent(`${item.title} ${item.place}`)}`;
 }
 
 function setMessage(message, tone = "") {
@@ -333,6 +382,7 @@ async function saveState() {
   if (role !== "admin") return;
   const payload = {
     notes: appState.notes,
+    schedule: appState.schedule,
     shopping: appState.shopping,
     visitDone: appState.visitDone,
     checkins: appState.checkins,
@@ -365,6 +415,7 @@ function render() {
   renderRouteMap();
   renderStatus();
   renderSchedule();
+  renderScheduleEditor();
   renderShopping();
   renderDetail(selectedItem);
 }
@@ -565,6 +616,236 @@ function renderSchedule() {
   });
 }
 
+function setAccessMessage(message, tone = "") {
+  const el = $("#accessMessage");
+  if (!el) return;
+  el.textContent = message || "";
+  el.className = `message ${tone}`.trim();
+}
+
+function setScheduleEditorMessage(message, tone = "") {
+  const el = $("#scheduleEditorMessage");
+  if (!el) return;
+  el.textContent = message || "";
+  el.className = `message ${tone}`.trim();
+}
+
+function renderScheduleEditor() {
+  if (role !== "admin") return;
+
+  const dayInput = $("#scheduleDayInput");
+  if (!dayInput) return;
+
+  dayInput.replaceChildren();
+  DAYS.forEach((day) => {
+    const option = document.createElement("option");
+    option.value = day.id;
+    option.textContent = `${day.label} ${day.title}`;
+    dayInput.appendChild(option);
+  });
+
+  const item = selectedItem;
+  dayInput.value = item?.day || selectedDay;
+  $("#scheduleTimeInput").value = item?.time || "";
+  $("#scheduleTitleInput").value = item?.title || "";
+  $("#schedulePlaceInput").value = item?.place || "";
+  $("#scheduleMapInput").value = item?.map || "";
+  $("#scheduleLatInput").value = Number.isFinite(Number(item?.lat)) ? String(item.lat) : "";
+  $("#scheduleLngInput").value = Number.isFinite(Number(item?.lng)) ? String(item.lng) : "";
+
+  const hasSelected = Boolean(item && getScheduleItems().some((candidate) => candidate.id === item.id));
+  ["scheduleSaveBtn", "scheduleDeleteBtn", "scheduleMoveUpBtn", "scheduleMoveDownBtn"].forEach((id) => {
+    const button = $(`#${id}`);
+    if (button) button.disabled = !hasSelected;
+  });
+}
+
+function readScheduleFormItem(existingId) {
+  const day = $("#scheduleDayInput").value;
+  const time = $("#scheduleTimeInput").value.trim();
+  const title = $("#scheduleTitleInput").value.trim();
+  const place = $("#schedulePlaceInput").value.trim();
+  const map = $("#scheduleMapInput").value.trim();
+  const latText = $("#scheduleLatInput").value.trim();
+  const lngText = $("#scheduleLngInput").value.trim();
+  const lat = latText ? Number(latText) : null;
+  const lng = lngText ? Number(lngText) : null;
+
+  if (!time || !title || !place) {
+    throw new Error("시간, 제목, 장소는 반드시 입력해야 합니다.");
+  }
+
+  if (map && !/^https?:\/\//i.test(map)) {
+    throw new Error("구글맵 링크는 http 또는 https 주소여야 합니다.");
+  }
+
+  if ((latText || lngText) && (!Number.isFinite(lat) || !Number.isFinite(lng))) {
+    throw new Error("위도와 경도는 둘 다 숫자로 입력해야 합니다.");
+  }
+
+  const item = {
+    id: existingId || makeScheduleId(),
+    day,
+    time,
+    title,
+    place,
+    map
+  };
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    item.lat = lat;
+    item.lng = lng;
+  }
+
+  item.map = mapUrlForItem(item);
+  return item;
+}
+
+async function saveScheduleItems(nextItems, message, nextSelectedId = selectedItem?.id) {
+  appState.schedule = normalizeScheduleItems(nextItems);
+  selectedItem = appState.schedule.find((item) => item.id === nextSelectedId) || null;
+  await withSave(message, () => saveState());
+}
+
+async function updateSelectedScheduleItem() {
+  if (role !== "admin" || !selectedItem) return;
+
+  try {
+    const items = getEditableScheduleItems();
+    const index = items.findIndex((item) => item.id === selectedItem.id);
+    if (index < 0) throw new Error("선택한 일정을 찾을 수 없습니다.");
+
+    const nextItem = readScheduleFormItem(selectedItem.id);
+    items[index] = nextItem;
+    selectedDay = nextItem.day;
+    await saveScheduleItems(items, "일정을 수정했습니다.", nextItem.id);
+    setScheduleEditorMessage("일정을 수정했습니다.", "success");
+  } catch (error) {
+    setScheduleEditorMessage(error.message, "error");
+  }
+}
+
+async function addScheduleItem() {
+  if (role !== "admin") return;
+
+  try {
+    const nextItem = readScheduleFormItem();
+    selectedDay = nextItem.day;
+    await saveScheduleItems([...getEditableScheduleItems(), nextItem], "새 일정을 추가했습니다.", nextItem.id);
+    setScheduleEditorMessage("새 일정을 추가했습니다.", "success");
+  } catch (error) {
+    setScheduleEditorMessage(error.message, "error");
+  }
+}
+
+function clearScheduleForm() {
+  selectedItem = null;
+  render();
+  setScheduleEditorMessage("새 일정을 입력할 수 있습니다.");
+}
+
+async function deleteSelectedScheduleItem() {
+  if (role !== "admin" || !selectedItem) return;
+  if (!confirm("선택한 일정을 삭제할까요?")) return;
+
+  const deleteId = selectedItem.id;
+  selectedItem = null;
+  await saveScheduleItems(
+    getEditableScheduleItems().filter((item) => item.id !== deleteId),
+    "일정을 삭제했습니다.",
+    null
+  );
+  setScheduleEditorMessage("일정을 삭제했습니다.", "success");
+}
+
+async function moveSelectedScheduleItem(direction) {
+  if (role !== "admin" || !selectedItem) return;
+
+  const items = getEditableScheduleItems();
+  const dayIndexes = items
+    .map((item, index) => (item.day === selectedItem.day ? index : -1))
+    .filter((index) => index >= 0);
+  const position = dayIndexes.findIndex((index) => items[index].id === selectedItem.id);
+  const nextPosition = position + direction;
+
+  if (position < 0 || nextPosition < 0 || nextPosition >= dayIndexes.length) {
+    setScheduleEditorMessage("더 이동할 수 없습니다.", "warn");
+    return;
+  }
+
+  const from = dayIndexes[position];
+  const to = dayIndexes[nextPosition];
+  [items[from], items[to]] = [items[to], items[from]];
+  await saveScheduleItems(items, "일정 순서를 변경했습니다.", selectedItem.id);
+  setScheduleEditorMessage("일정 순서를 변경했습니다.", "success");
+}
+
+async function resetSelectedDaySchedule() {
+  if (role !== "admin") return;
+  if (!confirm("오늘 날짜의 일정을 기본값으로 되돌릴까요?")) return;
+
+  const nextItems = getEditableScheduleItems().filter((item) => item.day !== selectedDay);
+  const baseItems = SCHEDULE.filter((item) => item.day === selectedDay).map(cloneScheduleItem);
+  selectedItem = null;
+  await saveScheduleItems([...nextItems, ...baseItems], "오늘 일정을 기본값으로 복원했습니다.", null);
+  setScheduleEditorMessage("오늘 일정을 기본값으로 복원했습니다.", "success");
+}
+
+async function resetAllSchedule() {
+  if (role !== "admin") return;
+  if (!confirm("전체 일정을 처음 기본값으로 되돌릴까요?")) return;
+
+  appState.schedule = null;
+  selectedItem = null;
+  await withSave("전체 일정을 기본값으로 복원했습니다.", () => saveState());
+  setScheduleEditorMessage("전체 일정을 기본값으로 복원했습니다.", "success");
+}
+
+async function updateAccessPin(targetRole) {
+  if (role !== "admin") return;
+
+  const isAdmin = targetRole === "admin";
+  const pinInput = $(isAdmin ? "#adminPinInput" : "#familyPinInput");
+  const confirmInput = $(isAdmin ? "#adminPinConfirm" : "#familyPinConfirm");
+  const newPin = pinInput.value.trim();
+  const confirmPin = confirmInput.value.trim();
+
+  if (!/^\d{6,32}$/.test(newPin)) {
+    setAccessMessage("PIN은 숫자 6자리 이상 32자리 이하로 입력해주세요.", "error");
+    return;
+  }
+
+  if (newPin !== confirmPin) {
+    setAccessMessage("PIN 확인 값이 다릅니다.", "error");
+    return;
+  }
+
+  try {
+    setBusy(true);
+    const result = await rpc("workshop_update_pin", {
+      p_token: token,
+      p_role: targetRole,
+      p_new_pin: newPin
+    });
+
+    if (!result?.ok) {
+      throw new Error(result?.message || "PIN 변경에 실패했습니다.");
+    }
+
+    pinInput.value = "";
+    confirmInput.value = "";
+    setAccessMessage(isAdmin ? "관리자 PIN을 변경했습니다. 새 PIN으로 다시 로그인해주세요." : "가족 PIN을 변경했습니다.", "success");
+
+    if (isAdmin) {
+      window.setTimeout(() => logout(), 900);
+    }
+  } catch (error) {
+    setAccessMessage(error.message, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
 function renderShopping() {
   const box = $("#shoppingList");
   if (!box) return;
@@ -622,7 +903,7 @@ function renderDetail(item) {
   const buttons = document.createElement("div");
   buttons.className = "button-row";
   const map = document.createElement("a");
-  map.href = item.map;
+  map.href = mapUrlForItem(item);
   map.target = "_blank";
   map.rel = "noreferrer";
   map.textContent = "구글맵";
@@ -891,6 +1172,23 @@ $("#saveStatusBtn").addEventListener("click", async () => {
   };
   await withSave("상태 저장 완료", () => saveState());
 });
+$("#adminPinForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  updateAccessPin("admin");
+});
+$("#familyPinForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  updateAccessPin("family");
+});
+$("#scheduleEditorForm").addEventListener("submit", (event) => event.preventDefault());
+$("#scheduleSaveBtn").addEventListener("click", updateSelectedScheduleItem);
+$("#scheduleAddBtn").addEventListener("click", addScheduleItem);
+$("#scheduleNewBtn").addEventListener("click", clearScheduleForm);
+$("#scheduleMoveUpBtn").addEventListener("click", () => moveSelectedScheduleItem(-1));
+$("#scheduleMoveDownBtn").addEventListener("click", () => moveSelectedScheduleItem(1));
+$("#scheduleDeleteBtn").addEventListener("click", deleteSelectedScheduleItem);
+$("#scheduleResetDayBtn").addEventListener("click", resetSelectedDaySchedule);
+$("#scheduleResetAllBtn").addEventListener("click", resetAllSchedule);
 
 document.documentElement.dataset.workshopAppReady = "true";
 
