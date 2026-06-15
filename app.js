@@ -182,7 +182,7 @@ async function login(event) {
     storage.set("workshopToken", token);
     storage.set("workshopRole", role);
     $("#pinInput").value = "";
-    await loadState();
+    await loadState({ force: true });
     setMessage("");
   } catch (error) {
     setMessage(`로그인 오류: ${error.message}`, "error");
@@ -210,8 +210,8 @@ async function logout() {
   render();
 }
 
-async function loadState() {
-  if (!token || isBusy) return;
+async function loadState({ force = false } = {}) {
+  if (!token || (isBusy && !force)) return;
   try {
     setBusy(true);
     const result = await rpc("workshop_get_state", { p_token: token });
