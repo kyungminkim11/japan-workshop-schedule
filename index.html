@@ -3,21 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>일본 워크샵 일정</title>
-  <meta name="description" content="2026년 6월 17일부터 20일까지 일본 워크샵 일정, 메모, 사진, 체크인을 기록하는 모바일 웹앱" />
+  <title>일본 워크샵 보안 일정</title>
+  <meta name="description" content="초대 코드로만 접근하는 일본 워크샵 일정, 기록, 사진, 위치 체크인 웹앱" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css?v=20260616-5" />
+  <link rel="stylesheet" href="style.css?v=20260616-secure-2" />
 </head>
 <body>
   <header class="app-header">
     <div>
-      <p class="eyebrow">Japan Workshop 2026</p>
-      <h1>일본 워크샵 일정</h1>
-      <p class="sub">6월 17일 - 6월 20일 · 일정 · 메모 · 사진 · 위치 체크인</p>
+      <p class="eyebrow">Private Japan Workshop</p>
+      <h1>일본 워크샵 보안 일정</h1>
+      <p class="sub">초대받은 사람만 볼 수 있는 일정 · 기록 · 체크인</p>
     </div>
     <div class="session-card" aria-live="polite">
-      <span id="sessionLabel">로그인 필요</span>
+      <span id="sessionLabel">접속 필요</span>
       <button id="logoutBtn" class="ghost small" type="button" hidden>로그아웃</button>
     </div>
   </header>
@@ -29,14 +29,36 @@
     </section>
 
     <section id="loginPanel" class="panel login-panel">
-      <h2>PIN 입력</h2>
-      <p>관리자 PIN은 기록과 저장이 가능하고, 가족 PIN은 보기 전용입니다.</p>
-      <form id="loginForm" class="login-form">
-        <label class="sr-only" for="pinInput">PIN</label>
-        <input id="pinInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN" />
-        <button id="loginBtn" type="submit">접속</button>
+      <div class="login-hero">
+        <p class="eyebrow">Invitation Only</p>
+        <h2>초대 코드로 입장</h2>
+        <p>회사 일정이 포함되어 있어 기본 일정도 공개하지 않습니다. 받은 코드에 따라 볼 수 있는 화면이 달라집니다.</p>
+      </div>
+
+      <div class="role-cards" aria-label="접속 모드 안내">
+        <article class="role-card role-admin">
+          <span>01</span>
+          <h3>관리자 모드</h3>
+          <p>경민님 전용. 일정 수정, 메모, 사진, 위치 체크인, 자료 다운로드.</p>
+        </article>
+        <article class="role-card role-girlfriend">
+          <span>02</span>
+          <h3>여자친구 모드</h3>
+          <p>일정 확인과 여자친구 부탁 리스트만 확인.</p>
+        </article>
+        <article class="role-card role-family">
+          <span>03</span>
+          <h3>가족 안심 모드</h3>
+          <p>부모님·이모용. 오늘 일정, 현재 상태, 체크인 확인.</p>
+        </article>
+      </div>
+
+      <form id="loginForm" class="login-form secure-login-form">
+        <label class="sr-only" for="pinInput">접속 코드</label>
+        <input id="pinInput" type="password" autocomplete="current-password" placeholder="접속 코드 입력" />
+        <button id="loginBtn" type="submit">입장하기</button>
       </form>
-      <p class="hint">service_role key, secret key, database password는 이 앱에 입력하지 마세요.</p>
+      <p class="hint">대소문자와 공백은 구분하지 않습니다. 공용 PC에서는 사용 후 로그아웃하세요.</p>
       <p id="loginMessage" class="message" role="status"></p>
     </section>
 
@@ -45,8 +67,8 @@
 
       <section class="panel today-card">
         <div>
-          <h2 id="dayTitle">일정</h2>
-          <p id="daySub" class="muted"></p>
+          <h2 id="dayTitle">보안 일정</h2>
+          <p id="daySub" class="muted">접속 권한에 맞는 일정만 표시됩니다.</p>
         </div>
         <button id="refreshBtn" class="ghost" type="button">새로고침</button>
       </section>
@@ -66,38 +88,80 @@
       <section id="familyStatusPanel" class="panel">
         <div class="panel-title-row">
           <div>
-            <h2>가족 공유 상태</h2>
-            <p class="muted">가족 모드에는 이 상태와 공유 가능한 기록만 보입니다.</p>
+            <h2>공유 상태</h2>
+            <p class="muted">가족/여자친구에게 보여도 되는 현재 상태입니다.</p>
           </div>
         </div>
         <div id="familyStatusView" class="status-box"></div>
         <div id="adminStatusEditor" class="admin-only stacked-form" hidden>
           <label for="statusText">현재 상태</label>
           <input id="statusText" placeholder="예: 시부야 로프트 둘러보는 중" />
-          <label for="statusMemo">가족에게 보일 메모</label>
-          <textarea id="statusMemo" placeholder="가족에게 공유해도 되는 짧은 상태를 적어주세요."></textarea>
+          <label for="statusMemo">공유 메모</label>
+          <textarea id="statusMemo" placeholder="가족/여자친구에게 공유해도 되는 짧은 상태를 적어주세요."></textarea>
           <button id="saveStatusBtn" type="button">상태 저장</button>
         </div>
       </section>
 
+      <section class="panel">
+        <div class="panel-title-row">
+          <div>
+            <h2>메인 타임라인</h2>
+            <p class="muted">사진 업로드, 메모 저장, 위치 체크인이 시간순으로 모입니다.</p>
+          </div>
+        </div>
+        <div id="timelineList" class="timeline-list"></div>
+      </section>
+
+      <section class="panel admin-only" id="adminDataPanel" hidden>
+        <h2>노트북 정리 / 백업</h2>
+        <p class="muted">저녁에 노트북에서 접속해 자료를 내려받거나, 일정 JSON을 가져올 수 있습니다.</p>
+        <div class="button-row">
+          <button id="downloadJsonBtn" type="button">전체 자료 JSON 다운로드</button>
+          <button id="downloadDayTxtBtn" class="ghost" type="button">선택 날짜 TXT 다운로드</button>
+          <label class="file-button ghost">
+            일정 JSON 가져오기
+            <input id="importScheduleInput" type="file" accept="application/json,.json" />
+          </label>
+        </div>
+        <p id="dataMessage" class="message" role="status"></p>
+      </section>
+
       <section class="panel admin-only" id="adminAccessPanel" hidden>
-        <h2>접속 코드 관리</h2>
-        <div class="admin-grid">
+        <div class="panel-title-row">
+          <div>
+            <h2>접속 코드 관리</h2>
+            <p class="muted">관리자 화면에서 현재 코드를 확인하고 마지막 접속 시간을 볼 수 있습니다.</p>
+          </div>
+          <button id="refreshAccessBtn" class="ghost small" type="button">접속 기록 새로고침</button>
+        </div>
+        <p class="security-note">현재 접속 코드는 관리자에게만 표시됩니다. 저장소에는 실제 코드가 올라가지 않습니다.</p>
+        <div id="accessOverview" class="access-overview"></div>
+        <h3>최근 접속 기록</h3>
+        <div id="accessLogList" class="access-log-list"></div>
+        <div class="admin-grid three-grid">
           <form id="adminPinForm" class="stacked-form">
-            <h3>관리자 PIN 변경</h3>
-            <label for="adminPinInput">새 관리자 PIN</label>
-            <input id="adminPinInput" type="password" inputmode="numeric" autocomplete="new-password" placeholder="숫자 6자리 이상" />
-            <label for="adminPinConfirm">새 관리자 PIN 확인</label>
-            <input id="adminPinConfirm" type="password" inputmode="numeric" autocomplete="new-password" placeholder="다시 입력" />
-            <button type="submit">관리자 PIN 저장</button>
+            <h3>관리자 코드 변경</h3>
+            <label for="adminPinInput">새 관리자 코드</label>
+            <input id="adminPinInput" type="password" autocomplete="new-password" placeholder="공백 제외 4자 이상" />
+            <label for="adminPinConfirm">새 관리자 코드 확인</label>
+            <input id="adminPinConfirm" type="password" autocomplete="new-password" placeholder="대소문자·공백 무시" />
+            <button type="submit">관리자 코드 저장</button>
+          </form>
+          <form id="girlfriendPinForm" class="stacked-form">
+            <h3>여자친구 코드 변경</h3>
+            <label for="girlfriendPinInput">새 여자친구 코드</label>
+            <input id="girlfriendPinInput" type="password" autocomplete="new-password" placeholder="공백 제외 4자 이상" />
+            <label for="girlfriendPinConfirm">새 여자친구 코드 확인</label>
+            <input id="girlfriendPinConfirm" type="password" autocomplete="new-password" placeholder="대소문자·공백 무시" />
+            <button type="submit">여자친구 코드 저장</button>
           </form>
           <form id="familyPinForm" class="stacked-form">
-            <h3>가족 PIN 변경</h3>
-            <label for="familyPinInput">새 가족 PIN</label>
-            <input id="familyPinInput" type="password" inputmode="numeric" autocomplete="new-password" placeholder="숫자 6자리 이상" />
-            <label for="familyPinConfirm">새 가족 PIN 확인</label>
-            <input id="familyPinConfirm" type="password" inputmode="numeric" autocomplete="new-password" placeholder="다시 입력" />
-            <button type="submit">가족 PIN 저장</button>
+            <h3>가족 코드 변경</h3>
+            <label for="familyPinInput">새 가족 코드</label>
+            <input id="familyPinInput" type="password" autocomplete="new-password" placeholder="공백 제외 4자 이상" />
+            <label for="familyPinConfirm">새 가족 코드 확인</label>
+            <input id="familyPinConfirm" type="password" autocomplete="new-password" placeholder="대소문자·공백 무시" />
+            <button type="submit">가족 코드 저장</button>
           </form>
         </div>
         <p id="accessMessage" class="message" role="status"></p>
@@ -107,38 +171,17 @@
         <div class="panel-title-row">
           <div>
             <h2>일정 관리</h2>
-            <p class="muted">일정을 선택해서 수정하거나 새 일정을 추가하면 가족 화면에도 바로 반영됩니다.</p>
+            <p class="muted">기본 일정도 Supabase에만 저장됩니다. 로그인 전에는 코드에 노출되지 않습니다.</p>
           </div>
         </div>
         <form id="scheduleEditorForm" class="schedule-editor">
-          <label>
-            날짜
-            <select id="scheduleDayInput"></select>
-          </label>
-          <label>
-            시간
-            <input id="scheduleTimeInput" placeholder="예: 15:00 또는 16:00~18:30" />
-          </label>
-          <label class="wide">
-            제목
-            <input id="scheduleTitleInput" placeholder="예: 호텔 체크인" />
-          </label>
-          <label class="wide">
-            장소
-            <input id="schedulePlaceInput" placeholder="예: Royal Park Hotel Iconic Tokyo Shiodome" />
-          </label>
-          <label class="wide">
-            구글맵 링크
-            <input id="scheduleMapInput" placeholder="비워두면 장소명으로 자동 생성" />
-          </label>
-          <label>
-            위도
-            <input id="scheduleLatInput" inputmode="decimal" placeholder="예: 35.6635" />
-          </label>
-          <label>
-            경도
-            <input id="scheduleLngInput" inputmode="decimal" placeholder="예: 139.7598" />
-          </label>
+          <label>날짜<select id="scheduleDayInput"></select></label>
+          <label>시간<input id="scheduleTimeInput" placeholder="예: 15:00 또는 16:00~18:30" /></label>
+          <label class="wide">제목<input id="scheduleTitleInput" placeholder="예: 호텔 체크인" /></label>
+          <label class="wide">장소<input id="schedulePlaceInput" placeholder="예: Royal Park Hotel Iconic Tokyo Shiodome" /></label>
+          <label class="wide">구글맵 링크<input id="scheduleMapInput" placeholder="비워두면 장소명으로 자동 생성" /></label>
+          <label>위도<input id="scheduleLatInput" inputmode="decimal" placeholder="예: 35.6635" /></label>
+          <label>경도<input id="scheduleLngInput" inputmode="decimal" placeholder="예: 139.7598" /></label>
         </form>
         <div class="button-row schedule-actions">
           <button id="scheduleSaveBtn" type="button">선택 일정 저장</button>
@@ -147,8 +190,6 @@
           <button id="scheduleMoveUpBtn" class="ghost" type="button">위로</button>
           <button id="scheduleMoveDownBtn" class="ghost" type="button">아래로</button>
           <button id="scheduleDeleteBtn" class="ghost danger" type="button">삭제</button>
-          <button id="scheduleResetDayBtn" class="ghost" type="button">오늘 기본값 복원</button>
-          <button id="scheduleResetAllBtn" class="ghost" type="button">전체 기본값 복원</button>
         </div>
         <p id="scheduleEditorMessage" class="message" role="status"></p>
       </section>
@@ -163,6 +204,21 @@
           <section class="panel admin-only" id="shoppingPanel" hidden>
             <h2>구매 체크리스트</h2>
             <div id="shoppingList" class="shopping-list"></div>
+            <form id="shoppingAddForm" class="inline-add-form">
+              <label class="sr-only" for="shoppingAddInput">구매 항목 추가</label>
+              <input id="shoppingAddInput" placeholder="구매 항목 추가" />
+              <button type="submit">추가</button>
+            </form>
+          </section>
+
+          <section class="panel" id="girlfriendPanel" hidden>
+            <h2>여자친구 부탁 리스트</h2>
+            <div id="girlfriendList" class="shopping-list"></div>
+            <form id="girlfriendAddForm" class="inline-add-form admin-only" hidden>
+              <label class="sr-only" for="girlfriendAddInput">부탁 항목 추가</label>
+              <input id="girlfriendAddInput" placeholder="여자친구 부탁 항목 추가" />
+              <button type="submit">추가</button>
+            </form>
           </section>
         </div>
 
@@ -177,7 +233,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20260616-5"></script>
-  <script src="app.js?v=20260616-5"></script>
+  <script src="config.js?v=20260616-secure-2"></script>
+  <script src="app.js?v=20260616-secure-2"></script>
 </body>
 </html>
