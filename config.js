@@ -260,3 +260,15 @@ window.WORKSHOP_SUPABASE = {
     setTimeout(() => clearInterval(timer), 10000);
   }
 })();
+
+// Load the media export helper after the base app scripts are ready.
+(function () {
+  const loadMediaExportPatch = () => {
+    if (document.querySelector('script[src*="media-export-patch.js"]')) return;
+    const script = document.createElement("script");
+    script.src = "media-export-patch.js?v=20260617-media-1";
+    document.head.appendChild(script);
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", loadMediaExportPatch, { once: true });
+  else loadMediaExportPatch();
+})();
