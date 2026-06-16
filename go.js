@@ -1,0 +1,1 @@
+(()=>{const p=new URLSearchParams(location.search).get('k');if(!p)return;addEventListener('load',()=>{const i=document.getElementById('pinInput'),f=document.getElementById('loginForm');if(!i||!f)return;i.value=p;history.replaceState(null,'',location.pathname);f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});})();
