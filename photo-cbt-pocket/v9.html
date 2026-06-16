@@ -1,0 +1,101 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>사진기능사 필기 포켓 CBT v9</title><style>body{margin:0;background:#eef2ff;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6}.app{max-width:1180px;margin:auto;padding:20px}.hero,.card{background:#fff;border:1px solid #dbe3ef;border-radius:22px;padding:20px;box-shadow:0 14px 35px #0f172a14;margin-bottom:14px}.hero h1{font-size:30px;margin:0 0 8px}.muted{color:#64748b}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tabs button,.btn{border:0;border-radius:14px;padding:11px 14px;background:#f1f5f9;font-weight:800;cursor:pointer}.tabs button.on,.btn.primary{background:#2563eb;color:white}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.two{display:grid;grid-template-columns:320px 1fr;gap:12px}.tag{display:inline-block;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:5px 9px;font-size:12px;margin:2px}.hot{background:#fee2e2;color:#b91c1c}.table{width:100%;border-collapse:collapse}.table th,.table td{border-bottom:1px solid #e5e7eb;padding:9px;text-align:left}.box{border-radius:16px;padding:13px;margin:10px 0}.key{background:#eff6ff;border:1px solid #bfdbfe}.warn{background:#fff7ed;border:1px solid #fed7aa}.ok{background:#ecfdf5;border:1px solid #bbf7d0}.list{display:grid;gap:8px;max-height:68vh;overflow:auto}.item{border:1px solid #dbe3ef;background:#fff;border-radius:15px;padding:12px;text-align:left;cursor:pointer}.item.on{background:#eff6ff;border-color:#93c5fd}.q{font-size:21px;font-weight:900}.opt{display:block;width:100%;border:1px solid #dbe3ef;background:#fff;border-radius:15px;padding:13px;text-align:left;margin:8px 0;cursor:pointer}.opt.sel{border-color:#2563eb;background:#eff6ff}.opt.good{border-color:#16a34a;background:#ecfdf5}.opt.bad{border-color:#dc2626;background:#fef2f2}.bar{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#2563eb,#38bdf8)}input,select{border:1px solid #dbe3ef;border-radius:14px;padding:11px;width:100%}@media(max-width:800px){.app{padding:12px}.grid,.two{grid-template-columns:1fr}.hero h1{font-size:24px}.list{max-height:none}.table{font-size:13px}}</style></head><body><div class="app"><section class="hero"><span class="tag hot">v9 리서치 반영</span><span class="tag">60문항/60분</span><h1>사진기능사 필기 포켓 CBT v9</h1><p class="muted">Q-Net 공식 기준, 공개 CBT 흐름, 최근 복원문제 메타데이터를 반영해 범위·비중·개념·고확률 변형문항을 재구성했습니다. 실제 기출 원문 전체가 아니라 시험 경향 기반 변형문항입니다.</p><div class="tabs" id="tabs"></div></section><main id="view"></main></div><script>
+const W=[['광학·노출·색',30,18,'최상','조리개·셔터·ISO·렌즈·측광·색온도·화이트밸런스 반복'],['디지털 이미지 프로세싱',25,15,'최상','현행 과목명에 이미지 프로세싱이 포함되어 RAW/JPEG·색관리·출력이 중요'],['사진사·사진이론',22.2,13,'상','니엡스·다게르·탈보트·옵스큐라·사진 기능성 암기형'],['카메라·촬영 실무',12.2,7,'상','AF·필터·플래시·조명·촬영 판단'],['재료·현상',7.8,5,'중상','은염·잠상·현상·정착·필름층'],['장비·안전관리',2.8,2,'중','전기·케이블·조명·배터리 안전']];
+const C=`사진사·사진이론|카메라 옵스큐라|어두운 방이나 상자에 작은 구멍/렌즈를 통해 외부 장면이 거꾸로 맺히는 광학 원리|감광재료가 아니라 상 투영 장치
+사진사·사진이론|은염과 감광성|은염은 빛에 반응해 화학 변화가 일어나는 감광 물질이며 필름 사진의 핵심|사진=광학적 상+감광재료+현상/정착
+사진사·사진이론|니엡스와 헬리오그래피|니엡스는 초기 영구 사진과 헬리오그래피로 기억한다|태양으로 그린다는 의미, 다게레오타입과 구분
+사진사·사진이론|르 그라 창밖 풍경|현존하는 가장 이른 영구 사진으로 알려진 사례|긴 노출과 낮은 감도 한계
+사진사·사진이론|다게르와 다게레오타입|은도금 구리판을 이용한 선명한 직접양화 방식|복제가 어려운 단일 이미지
+사진사·사진이론|탈보트와 칼로타입|종이 네거티브에서 여러 장을 만들 수 있는 네거티브-포지티브 방식|복제 가능성이 핵심
+사진사·사진이론|포토제닉 드로잉|감광 종이에 물체를 올려 실루엣을 기록한 방식|탈보트와 연결
+사진사·사진이론|습판 콜로디온|유리판을 젖은 상태에서 노출·현상해야 하는 방식|선명하지만 현장 처리가 불편
+사진사·사진이론|건판과 롤필름|건판은 보관성이 좋아졌고 롤필름은 사진 대중화에 기여|습판→건판→롤필름 흐름
+사진사·사진이론|맥스웰과 컬러 사진|맥스웰의 컬러 실험은 RGB 가산혼합과 연결|컬러 사진은 디지털 시대에 처음 나온 것이 아님
+사진사·사진이론|픽토리얼리즘|회화적이고 부드러운 예술 표현을 중시한 사진 경향|스트레이트 포토그래피와 비교
+사진사·사진이론|스트레이트 포토그래피|사진 매체의 선명성·직접성·사실성을 중시|사진 고유성 강조
+사진사·사진이론|다큐멘터리·보도사진|다큐멘터리는 현실 기록, 보도사진은 뉴스성과 현장성이 강함|목적과 기능 구분
+광학·노출·색|노출 삼각형|조리개·셔터속도·ISO가 노출을 결정|한 요소 변경 시 다른 요소로 보정
+광학·노출·색|조리개 F값|F값이 낮을수록 밝고 피사계 심도가 얕아짐|숫자와 구멍 크기를 반대로 이해
+광학·노출·색|셔터속도|빠른 셔터는 정지, 느린 셔터는 흐림 표현|느린 셔터도 표현 목적이면 정답
+광학·노출·색|ISO 감도|ISO 상승은 밝기 확보와 노이즈 증가를 동반|무조건 낮은 ISO가 정답은 아님
+광학·노출·색|스톱 계산|1스톱은 빛의 양 2배 또는 1/2배 변화|셔터·조리개·ISO 환산
+광학·노출·색|피사계 심도|조리개·초점거리·촬영거리·센서 크기가 영향|파일명은 영향 없음
+광학·노출·색|측광과 노출보정|평가·중앙중점·스팟측광을 구분하고 +/-EV 보정 이해|눈밭은 +보정 가능
+광학·노출·색|렌즈 초점거리와 화각|광각은 넓고 원근감 강조, 망원은 좁고 압축감|망원=무조건 심도 깊음 아님
+광학·노출·색|색온도와 화이트밸런스|낮은 K는 따뜻함, 높은 K는 차가움. WB는 광원색 보정|광원색과 보정 방향 혼동 주의
+광학·노출·색|가산혼합·감산혼합|RGB는 빛의 가산혼합, CMYK는 인쇄 감산혼합|모니터와 인쇄 구분
+디지털 이미지 프로세싱|RAW와 JPEG|RAW는 보정 폭이 크고 JPEG는 손실 압축과 호환성이 좋음|RAW는 완성 이미지가 아님
+디지털 이미지 프로세싱|색공간과 ICC|sRGB는 웹 호환성, ICC는 장치 간 색관리|넓은 색공간은 관리 필요
+디지털 이미지 프로세싱|히스토그램과 클리핑|밝기 분포와 하이라이트/섀도 손실 확인|LCD 밝기만 믿지 않음
+디지털 이미지 프로세싱|비트심도와 계조|비트심도가 높으면 계조 표현이 풍부|웹 출력은 보통 8bit가 많음
+디지털 이미지 프로세싱|동적범위와 HDR|밝은 곳과 어두운 곳 정보를 보존/합성|날아간 하이라이트 복구 한계
+디지털 이미지 프로세싱|전자셔터와 밴딩|전자셔터는 무소음 장점이 있지만 LED 밴딩/롤링셔터 주의|항상 기계식보다 우수하지 않음
+재료·현상|잠상·현상·정착|노출 후 보이지 않는 잠상이 생기고 현상으로 보이게 하며 정착으로 안정화|현상과 정착 역할 구분
+재료·현상|필름 감도와 입자|고감도 필름은 어두운 곳에 유리하지만 입자가 거칠 수 있음|디지털 노이즈와 구분
+재료·현상|현상 순서|현상→정지→정착→수세→건조|정지와 정착 순서 혼동 주의
+카메라·촬영 실무|AF-S와 AF-C|AF-S는 정지, AF-C는 움직임 추적에 유리|초점과 손떨림은 별개
+카메라·촬영 실무|가이드넘버|GN=거리×조리개값, 조리개=GN÷거리|ISO 조건 확인
+카메라·촬영 실무|플래시 동조|셔터와 발광 타이밍을 맞추는 것|동조속도 제한 주의
+카메라·촬영 실무|필터|ND는 광량 감소, 편광필터는 반사/하늘 조절|해상도 증가 장치 아님
+장비·안전관리|촬영장 안전|케이블·조명스탠드·전원·배터리·열·동선 관리|쉬운 점수지만 실무 핵심`.split('\n').map(x=>{let p=x.split('|');return{d:p[0],t:p[1],s:p[2],k:p[3]}});
+const Q=`광학·노출·색|조리개 F값이 낮아질 때 가장 적절한 변화는?|빛이 적게 들어오고 심도가 깊어진다;빛이 많이 들어오고 피사계 심도가 얕아진다;색온도만 높아진다;초점거리가 길어진다|1|F값이 낮으면 조리개가 크게 열리고 배경흐림이 커진다.
+광학·노출·색|셔터속도 1/1000초의 주된 효과는?|움직임 정지에 유리하다;움직임 흐림을 크게 만든다;화이트밸런스를 바꾼다;해상도를 낮춘다|0|빠른 셔터는 움직임 정지에 유리하다.
+광학·노출·색|ISO 감도를 높이면 일반적으로 증가할 수 있는 것은?|노이즈;렌즈 초점거리;조리개 날 수;색공간 크기|0|ISO 상승은 밝기 확보와 노이즈 증가를 동반할 수 있다.
+광학·노출·색|1/125초에서 1/250초로 바꾸면 빛의 양은?|2배 증가;절반으로 감소;변화 없음;색온도만 변화|1|셔터가 두 배 빨라지면 노출 시간은 절반이다.
+광학·노출·색|얕은 피사계 심도 조건은?|높은 F값·짧은 초점거리·먼 거리;낮은 F값·긴 초점거리·가까운 거리;파일명 변경;JPEG 압축률 증가|1|낮은 F값, 긴 초점거리, 가까운 거리는 심도를 얕게 만든다.
+광학·노출·색|스팟측광이 적합한 상황은?|전체 평균을 넓게 측정;특정 작은 영역 기준 노출;렌즈 무게 측정;메모리카드 포맷|1|스팟측광은 좁은 영역 기준이다.
+광학·노출·색|눈밭 사진이 자동노출에서 어둡게 나올 때 대처는?|+ 노출보정;- 노출보정;ISO 0 설정;렌즈캡 장착|0|밝은 장면은 카메라가 어둡게 보정할 수 있어 +보정이 필요하다.
+광학·노출·색|광각렌즈 특징은?|넓은 화각과 원근감 강조;항상 배경 압축;초점거리가 길수록 광각;움직임 자동 정지|0|광각은 넓은 화각과 강한 원근감이 특징이다.
+광학·노출·색|망원렌즈 특징은?|화각이 넓고 왜곡이 큼;좁은 화각과 압축감;무조건 심도 깊음;색온도 증가|1|망원은 좁은 화각과 압축감을 만든다.
+광학·노출·색|색온도 K값이 높을수록 일반적인 느낌은?|붉고 따뜻함;푸르고 차가움;무조건 흑백;노출 과다|1|높은 K는 푸른 계열 느낌과 연결된다.
+광학·노출·색|화이트밸런스 목적은?|광원의 색 편차 보정;셔터막 교체;초점거리 증가;메모리 속도 향상|0|WB는 광원에 따른 색을 보정한다.
+광학·노출·색|RGB 색 표현 원리는?|가산혼합;감산혼합만;은염 현상;플래시 동조|0|RGB는 빛의 가산혼합이다.
+광학·노출·색|간상체와 관련 깊은 것은?|색각 중심;어두운 곳 명암 인식;조리개 조절;파일 압축|1|간상체는 명암과 어두운 곳 시각에 관련된다.
+광학·노출·색|히스토그램 오른쪽 끝이 잘리면?|하이라이트 클리핑;초점거리 증가;색공간 없음;배터리 부족|0|오른쪽 클리핑은 밝은 영역 손실 가능성이다.
+광학·노출·색|GN 40 플래시에서 5m 피사체 기준 조리개는?|F2;F4;F8;F16|2|조리개=GN÷거리=40÷5=8.
+광학·노출·색|초점이 맞는다는 의미는?|선명한 상이 센서/필름면에 맺힘;색온도 5500K;JPEG 용량 감소;필름 정착|0|초점은 선명한 상이 맺히는 위치 문제다.
+광학·노출·색|대비의 의미는?|렌즈 브랜드;밝고 어두운 부분의 차이;메모리 규격;셔터막 속도|1|대비는 명암 차이다.
+광학·노출·색|관용도가 큰 재료/파일의 장점은?|노출 오차 허용 범위가 넓다;렌즈가 자동 교체된다;항상 용량이 작다;색온도가 사라진다|0|관용도는 노출 허용 범위와 관련된다.
+디지털 이미지 프로세싱|RAW 파일의 장점은?|보정 폭이 크다;항상 용량이 가장 작다;호환성이 가장 좋다;무조건 완성 이미지다|0|RAW는 센서 정보를 많이 보존한다.
+디지털 이미지 프로세싱|JPEG의 일반적 특징은?|손실 압축과 높은 호환성;무압축 원본;현상액 이름;렌즈 종류|0|JPEG는 손실 압축이지만 호환성이 좋다.
+디지털 이미지 프로세싱|웹용 색공간으로 안정적인 것은?|sRGB;CMYK 전용;Lab 전용;색공간 없음|0|웹은 sRGB가 일반적으로 안정적이다.
+디지털 이미지 프로세싱|ICC 프로파일의 역할은?|장치 간 색 특성 관리;초점거리 변경;셔터속도 증가;배터리 충전|0|ICC는 색관리 정보다.
+디지털 이미지 프로세싱|비트심도가 높을수록?|계조 표현이 풍부하다;렌즈가 밝아진다;셔터가 빨라진다;배터리가 충전된다|0|비트심도는 색과 밝기 단계 표현과 관련된다.
+디지털 이미지 프로세싱|동적범위가 넓다는 뜻은?|명암 정보를 더 많이 담음;노이즈 0;초점 자동 고정;파일명 짧음|0|동적범위는 하이라이트와 섀도 보존 능력이다.
+디지털 이미지 프로세싱|RAW 현상은?|디지털 원본을 밝기·색·대비로 처리;암실 화학약품만 사용;파일 삭제;렌즈 분해|0|RAW 현상은 소프트웨어 처리다.
+디지털 이미지 프로세싱|과도한 샤프닝 문제는?|윤곽 부자연스러움과 노이즈 강조;초점거리 증가;메모리 속도 향상;색온도 0K|0|샤프닝 과다는 품질 저하를 만든다.
+디지털 이미지 프로세싱|AI 노이즈 감소 설명으로 적절한 것은?|디테일 손실 확인 필요;노출 이론 완전 대체;초점거리 변경;현상 순서 삭제|0|노이즈 감소는 디테일 손실을 확인해야 한다.
+디지털 이미지 프로세싱|DPI/PPI 설명으로 적절한 것은?|출력 크기와 픽셀 수를 함께 고려;DPI만 바꾸면 픽셀 증가;렌즈 밝기 단위;색온도 단위|0|출력은 픽셀 수와 크기를 함께 본다.
+디지털 이미지 프로세싱|전자셔터 주의점은?|LED 밴딩·롤링셔터 왜곡;필름 현상 불가;조리개 삭제;색공간 고정|0|전자셔터는 특정 조명에서 밴딩이 생길 수 있다.
+디지털 이미지 프로세싱|HDR 목적은?|넓은 명암 범위 표현;초점거리 변경;필름 정착;메모리 포맷|0|HDR은 명암 범위 확장을 위한 처리다.
+디지털 이미지 프로세싱|EXIF가 담을 수 있는 정보는?|촬영 노출·카메라·렌즈 정보;현상액 농도만;필름 은염층만;조명 열량만|0|EXIF는 촬영 메타데이터를 담는다.
+디지털 이미지 프로세싱|HEIF 사용 시 확인할 점은?|호환성;조리개 날 수;필름 현상액;수은 증기|0|HEIF는 효율이 좋지만 호환성 확인이 필요하다.
+디지털 이미지 프로세싱|클리핑의 의미는?|밝기 정보 손실 가능성;초점거리 증가;색공간 확대;감도 감소|0|클리핑은 섀도/하이라이트 정보 손실과 관련된다.
+디지털 이미지 프로세싱|RAW가 JPEG보다 WB 보정에 유리한 이유는?|원본 정보가 많이 남아 있어서;파일명이 길어서;항상 용량이 작아서;무조건 자동 보정이라서|0|RAW는 색정보 보정 여지가 크다.
+사진사·사진이론|카메라 옵스큐라 설명으로 옳은 것은?|감광 종이 이름;어두운 공간에 외부 상이 거꾸로 맺히는 원리;디지털 AF 모드;컬러 필름층|1|카메라 옵스큐라는 광학적 상 투영 원리다.
+사진사·사진이론|니엡스와 관련 깊은 용어는?|헬리오그래피;칼로타입;오토크롬;전자셔터|0|니엡스는 헬리오그래피와 연결한다.
+사진사·사진이론|르 그라 창밖 풍경은?|니엡스의 초기 영구 사진;최초 디지털 RAW;최초 컬러 필름;현대 보도사진|0|초기 영구 사진 사례다.
+사진사·사진이론|다게레오타입의 특징은?|종이 네거티브;은판 직접양화이나 복제 어려움;디지털 포맷;컬러 필름층|1|다게레오타입은 직접양화다.
+사진사·사진이론|칼로타입의 핵심은?|종이 네거티브와 복제 가능성;은판 직접양화;무선통신;전자셔터|0|탈보트의 칼로타입은 복제성이 핵심이다.
+사진사·사진이론|포토제닉 드로잉은?|감광 종이에 물체를 올려 실루엣 기록;수은 증기 현상;CMOS 배열;플래시 동조|0|탈보트의 초기 감광 종이 실험이다.
+사진사·사진이론|습판 콜로디온 특징은?|젖은 상태에서 처리;건조 후 오래 보관;디지털 압축;색온도 단위|0|습판은 마르기 전에 노출·현상해야 했다.
+사진사·사진이론|건판의 장점은?|미리 준비하고 나중에 현상 가능;항상 젖은 상태만 사용;현상 과정 없음;은염 없음|0|건판은 습판보다 보관성과 편의성이 좋았다.
+사진사·사진이론|맥스웰의 컬러 실험과 연결되는 원리는?|RGB 가산혼합;CMYK만;흑백 정착액;스팟측광|0|맥스웰은 RGB 컬러 원리와 연결된다.
+사진사·사진이론|픽토리얼리즘은?|회화적이고 부드러운 표현;사진의 직접성만 강조;노이즈 제거;현상액 농도 측정|0|픽토리얼리즘은 회화적 표현을 중시했다.
+사진사·사진이론|스트레이트 포토그래피는?|선명성·직접성·사실성 중시;무조건 흐림;현상 금지;컬러 사용 금지|0|사진 매체의 고유성을 중시한다.
+사진사·사진이론|다큐멘터리 사진의 기능은?|현실 기록과 사회적 전달;렌즈 수리;배터리 충전;추상무늬 제작|0|다큐멘터리는 현실 기록 기능이 강하다.
+사진사·사진이론|사진의 기록성과 표현성 설명으로 옳은 것은?|현실을 기록하지만 선택이 결과를 바꿈;항상 완전 객관;창작 개입 없음;같은 장소는 항상 같음|0|사진은 기록성과 표현성을 함께 갖는다.
+재료·현상|고감도 필름 특징은?|입자가 거칠 수 있음;색온도 항상 낮음;현상 불필요;셔터 사라짐|0|고감도 필름은 입상성이 커질 수 있다.
+재료·현상|흑백 필름 현상 순서는?|현상-정지-정착-수세-건조;정착-현상-건조-정지;수세-건조-현상;촬영-삭제-압축|0|기본 순서는 현상, 정지, 정착, 수세, 건조다.
+재료·현상|정착의 역할은?|미노광 은염 제거와 안정화;색온도 상승;렌즈 왜곡;AF 가속|0|정착은 더 이상 빛에 반응하지 않게 안정화한다.
+재료·현상|잠상은?|노출 후 감광재료에 생기는 보이지 않는 상;완성 JPEG;초점거리;인쇄 해상도|0|현상은 잠상을 보이는 상으로 만든다.
+재료·현상|컬러 네거티브 필름층에서 중요한 것은?|여러 감광층과 색재현 원리;항상 단일 흑백층;디지털 센서만;조리개값|0|컬러 필름은 층 구조와 보색 관계가 중요하다.
+카메라·촬영 실무|AF-C가 적합한 상황은?|움직이는 피사체 추적;정지 문서 복사만;색온도 측정;필름 정착|0|AF-C는 연속 AF로 움직임 추적에 적합하다.
+카메라·촬영 실무|주광과 보조광 설명으로 옳은 것은?|주광은 주된 빛, 보조광은 그림자 완화;보조광은 항상 더 강함;주광은 파일 포맷;둘 다 색공간|0|주광과 보조광은 역할과 광량비가 중요하다.
+카메라·촬영 실무|편광필터 용도는?|반사 조절과 하늘 색 강조;ISO 자동 증가;셔터막 교체;파일 압축|0|편광필터는 반사 조절에 쓰인다.
+카메라·촬영 실무|ND 필터 용도는?|광량 감소;색온도 상승만;초점거리 증가;해상도 증가|0|ND는 빛의 양을 줄인다.
+카메라·촬영 실무|손떨림을 줄이는 방법은?|빠른 셔터속도와 안정된 자세;색공간 변경;파일명 변경;정착액 교체|0|셔터속도와 자세가 중요하다.
+카메라·촬영 실무|플래시 동조란?|셔터와 플래시 발광 타이밍을 맞춤;RAW를 JPEG로 변환;필름을 수세;색온도를 낮춤|0|동조속도 제한도 함께 기억한다.
+카메라·촬영 실무|미러리스 EVF의 특징은?|전자식 화면으로 노출/색 미리보기 가능;반드시 필름 사용;수은 현상;은판 직접양화|0|EVF는 전자식 뷰파인더다.
+장비·안전관리|촬영장 안전관리로 적절한 것은?|케이블과 조명 스탠드 고정;배터리 손상 방치;젖은 손으로 전원 조작;통로에 삼각대 방치|0|전원·동선·낙하 관리는 기본이다.
+장비·안전관리|조명 장비 사용 시 주의점은?|열·전원·낙하·동선 관리;젖은 손으로 플러그 조작;스탠드 통로 방치;배터리 팽창 무시|0|장비 안전은 쉬운 점수 영역이다.`.split('\n').map((l,i)=>{let p=l.split('|');return{id:'q'+(i+1),d:p[0],q:p[1],o:p[2].split(';'),a:+p[3],e:p[4]}});
+const tabs=[['home','홈'],['scope','범위'],['concept','개념'],['priority','빈출'],['quiz','CBT']];let cur='home',sel=0,quiz=[],idx=0,ans=[],remain=3600,timer=null;const $=s=>document.querySelector(s);function drawTabs(){tabs.forEach(t=>{let b=document.createElement('button');b.textContent=t[1];b.className=cur==t[0]?'on':'';b.onclick=()=>{cur=t[0];render()};$('#tabs').appendChild(b)})}function resetTabs(){let t=$('#tabs');t.innerHTML='';drawTabs()}function render(){resetTabs();let v=$('#view');if(cur=='home')v.innerHTML=`<div class="grid"><div class="card"><h3>시험 정보</h3><p>현행 출제기준: 2024.1.1.~2026.12.31.</p><p>과목명: 사진촬영 및 이미지 프로세싱</p><p>구조: 객관식 4지선다 60문항 / 60분 / 60점 이상 합격</p></div><div class="card"><h3>v9 반영</h3><p>공식 기준, 공개 CBT, 최근 복원문제 메타데이터를 기반으로 학습 비중과 고확률 문항을 재구성했습니다.</p></div><div class="card"><h3>바로 시작</h3><button class="btn primary" onclick="cur='quiz';render();startExam()">실전 60문항 시작</button></div></div><div class="card"><h3>중요 안내</h3><p>실제 기출 원문 전체를 복제하지 않고, 출제 키워드와 경향을 기반으로 변형 문항을 넣었습니다.</p></div>`;if(cur=='scope')v.innerHTML=`<div class="card"><h3>범위·비중</h3><table class="table"><tr><th>영역</th><th>가중치</th><th>실전 배정</th><th>근거</th></tr>${W.map(w=>`<tr><td><b>${w[0]}</b></td><td>${w[1]}%</td><td>${w[2]}문항</td><td>${w[4]}</td></tr>`).join('')}</table></div>`;if(cur=='concept')renderConcept();if(cur=='priority')v.innerHTML=`<div class="card"><h3>고확률 키워드</h3><p class="muted">상위권 키워드는 실전 60문항에 우선 반영했습니다.</p>${['조리개 F값','셔터속도','ISO','스톱 계산','피사계 심도','측광','노출보정','광각/망원','색온도','화이트밸런스','RAW/JPEG','히스토그램','ICC','동적범위','전자셔터 밴딩','니엡스','다게레오타입','칼로타입','현상·정착','가이드넘버'].map((x,i)=>`<span class="tag ${i<10?'hot':''}">${i+1}. ${x}</span>`).join('')}</div>`;if(cur=='quiz')renderQuizHome()}function renderConcept(){let v=$('#view');v.innerHTML=`<div class="two"><div class="list">${C.map((c,i)=>`<button class="item ${i==sel?'on':''}" onclick="sel=${i};renderConcept()"><b>${c.t}</b><br><span class="muted">${c.d}</span></button>`).join('')}</div><div class="card"><span class="tag">${C[sel].d}</span><h2>${C[sel].t}</h2><p>${C[sel].s}</p><div class="box key"><b>핵심</b><br>${C[sel].k}</div></div></div>`}function renderQuizHome(){let v=$('#view');v.innerHTML=`<div class="two"><div class="card"><h3>CBT 설정</h3><button class="btn primary" onclick="startExam()">실전 60문항/60분</button><button class="btn" onclick="startShort()">고확률 20문항</button><button class="btn" onclick="startWrong()">오답만</button><button class="btn" onclick="localStorage.removeItem('wrongV9');alert('삭제했습니다')">오답 초기화</button></div><div class="card" id="qbox"><h3>대기</h3><p class="muted">모드를 선택하세요.</p></div></div>`}function startExam(){quiz=Q.slice(0,60);idx=0;ans=Array(quiz.length).fill(null);remain=3600;startTimer();showQ()}function startShort(){quiz=Q.slice(0,20);idx=0;ans=Array(quiz.length).fill(null);stopTimer();showQ()}function startWrong(){let w=JSON.parse(localStorage.wrongV9||'[]');quiz=Q.filter(q=>w.includes(q.id));if(!quiz.length)return alert('오답이 없습니다.');idx=0;ans=Array(quiz.length).fill(null);stopTimer();showQ()}function startTimer(){stopTimer();timer=setInterval(()=>{remain--;if(remain<=0)result();else tick()},1000)}function stopTimer(){if(timer)clearInterval(timer);timer=null}function tick(){let e=$('#time');if(e)e.textContent=String(Math.floor(remain/60)).padStart(2,'0')+':'+String(remain%60).padStart(2,'0')}function showQ(){let q=quiz[idx];let b=$('#qbox');b.innerHTML=`<b>${idx+1}/${quiz.length}</b> <span class="tag">${q.d}</span> <span class="tag hot" id="time">${timer?'60:00':'학습모드'}</span><div class="bar"><i style="width:${(idx+1)/quiz.length*100}%"></i></div><p class="q">${q.q}</p>${q.o.map((o,i)=>`<button class="opt ${ans[idx]===i?'sel':''}" onclick="choose(${i})">${i+1}. ${o}</button>`).join('')}<div id="exp" class="box key" style="display:${ans[idx]==null?'none':'block'}"></div><div class="tabs"><button class="btn" onclick="prev()" ${idx==0?'disabled':''}>이전</button><button class="btn primary" onclick="next()">${idx==quiz.length-1?'결과':'다음'}</button></div>`;tick();if(ans[idx]!=null)mark()}function choose(i){ans[idx]=i;mark()}function mark(){let q=quiz[idx];document.querySelectorAll('.opt').forEach((b,i)=>{b.classList.toggle('good',i==q.a);b.classList.toggle('bad',ans[idx]==i&&i!=q.a)});$('#exp').style.display='block';$('#exp').innerHTML=`<b>정답 ${q.a+1}번</b><br>${q.e}`}function prev(){if(idx>0){idx--;showQ()}}function next(){if(idx<quiz.length-1){idx++;showQ()}else result()}function result(){stopTimer();let c=0,w=JSON.parse(localStorage.wrongV9||'[]'),by={};quiz.forEach((q,i)=>{by[q.d]=by[q.d]||[0,0];by[q.d][1]++;if(ans[i]==q.a){c++;by[q.d][0]++}else if(!w.includes(q.id))w.push(q.id)});localStorage.wrongV9=JSON.stringify(w);$('#qbox').innerHTML=`<h2>결과</h2><p class="q">${c}/${quiz.length} 정답</p><p>60문항 기준 36문항 이상이면 합격권입니다.</p><table class="table"><tr><th>영역</th><th>정답</th></tr>${Object.entries(by).map(([d,v])=>`<tr><td>${d}</td><td>${v[0]}/${v[1]}</td></tr>`).join('')}</table><button class="btn primary" onclick="startExam()">다시 풀기</button>`}drawTabs();render();</script></body></html>
