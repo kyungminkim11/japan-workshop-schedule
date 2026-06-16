@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>일본 워크샵 오프라인 기록</title>
+  <link rel="stylesheet" href="style.css?v=20260616-soft" />
+  <style>
+    .offline-badge{display:inline-flex;gap:6px;align-items:center;border:1px solid #f0dba8;border-radius:999px;background:#fff8e5;color:#987341;padding:6px 10px;font-size:12px;font-weight:900}.offline-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.offline-nav{position:fixed;left:10px;right:10px;bottom:10px;z-index:10;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;border:1px solid var(--line);border-radius:24px;background:rgba(255,253,248,.92);backdrop-filter:blur(10px);box-shadow:var(--shadow);padding:8px}.offline-nav button{min-height:48px;padding:8px 6px;border-radius:18px;background:#fffdf9;color:#7a6251;box-shadow:none}.offline-nav button.active{background:#fff0ed;color:#ef7578;border:1px solid #ffaca6}.offline-section{display:none}.offline-section.active{display:block}.offline-card{display:grid;gap:6px}.offline-card textarea{min-height:150px}.photo-preview{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.photo-preview img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:16px;border:1px solid var(--line)}@media(max-width:520px){.offline-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Offline Emergency</p>
+      <h1>일본 워크샵</h1>
+      <p class="sub">Supabase 접속 문제 때 쓰는 임시 로컬 기록장</p>
+    </div>
+    <div class="session-card"><span>오프라인 관리자</span><span class="offline-badge">기기 저장</span></div>
+  </header>
+
+  <main>
+    <section class="panel warning">
+      <h2>임시 기록 모드</h2>
+      <p class="muted">이 페이지는 Supabase 없이 현재 기기에만 저장됩니다. 저녁에 노트북으로 옮기려면 JSON 다운로드 후 가져오기를 사용하세요.</p>
+      <div class="button-row">
+        <button id="exportBtn" type="button">JSON 다운로드</button>
+        <label class="file-button ghost">JSON 가져오기<input id="importInput" type="file" accept="application/json,.json" /></label>
+      </div>
+    </section>
+
+    <section id="home" class="offline-section active">
+      <section class="panel login-hero">
+        <p class="eyebrow">Today</p>
+        <h2>오늘 기록 요약</h2>
+        <p id="summaryText">기록을 시작해보세요.</p>
+      </section>
+      <section class="panel">
+        <h2>빠른 기록</h2>
+        <div class="offline-grid">
+          <button onclick="showTab('memo')">메모 남기기</button>
+          <button class="ghost" onclick="showTab('photos')">사진 추가</button>
+          <button class="ghost" onclick="showTab('timeline')">타임라인 보기</button>
+          <button class="ghost" onclick="addQuickCheckin()">현재 상태 기록</button>
+        </div>
+      </section>
+    </section>
+
+    <section id="memo" class="offline-section">
+      <section class="panel offline-card">
+        <h2>메모</h2>
+        <input id="memoTitle" placeholder="장소/제목 예: 카키모리" />
+        <textarea id="memoBody" placeholder="느낀 점, 배워올 점, 구매한 것, 사진 메모 등을 적어두세요."></textarea>
+        <button id="saveMemoBtn" type="button">메모 저장</button>
+      </section>
+    </section>
+
+    <section id="photos" class="offline-section">
+      <section class="panel offline-card">
+        <h2>사진</h2>
+        <input id="photoMemo" placeholder="사진 메모 예: 이토야 매대 구성" />
+        <input id="photoInput" type="file" accept="image/*" multiple />
+        <div id="photoPreview" class="photo-preview"></div>
+      </section>
+    </section>
+
+    <section id="timeline" class="offline-section">
+      <section class="panel">
+        <h2>기록 타임라인</h2>
+        <div id="timelineList" class="timeline-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <nav class="offline-nav">
+    <button data-tab="home" class="active" onclick="showTab('home')">홈</button>
+    <button data-tab="memo" onclick="showTab('memo')">메모</button>
+    <button data-tab="photos" onclick="showTab('photos')">사진</button>
+    <button data-tab="timeline" onclick="showTab('timeline')">기록</button>
+  </nav>
+
+  <script>
+    const key = 'workshopEmergencyRecordsV1';
+    const $ = (q) => document.querySelector(q);
+    const records = () => { try { return JSON.parse(localStorage.getItem(key)||'[]') || [] } catch { return [] } };
+    const save = (list) => { localStorage.setItem(key, JSON.stringify(list)); render(); };
+    const now = () => new Date().toISOString();
+    const fmt = (v) => new Date(v).toLocaleString('ko-KR');
+    function showTab(id){ document.querySelectorAll('.offline-section').forEach(s=>s.classList.toggle('active',s.id===id)); document.querySelectorAll('.offline-nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id)); if(id==='timeline') render(); }
+    function addRecord(item){ const list = records(); list.unshift({ id: Date.now()+Math.random().toString(36).slice(2), createdAt: now(), ...item }); save(list); }
+    function addQuickCheckin(){ addRecord({ type:'상태', title:'현재 상태 기록', body:'현장에서 빠른 상태 기록을 남겼습니다.' }); showTab('timeline'); }
+    $('#saveMemoBtn').onclick = () => { const title=$('#memoTitle').value.trim()||'현장 메모'; const body=$('#memoBody').value.trim(); if(!body) return alert('메모 내용을 적어주세요.'); addRecord({type:'메모', title, body}); $('#memoTitle').value=''; $('#memoBody').value=''; showTab('timeline'); };
+    function resize(file){ return new Promise((resolve,reject)=>{ const img=new Image(); const r=new FileReader(); r.onload=()=>{ img.onload=()=>{ let w=img.width,h=img.height,max=1200; if(w>h&&w>max){h=Math.round(h*max/w);w=max}else if(h>=w&&h>max){w=Math.round(w*max/h);h=max} const c=document.createElement('canvas'); c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h); resolve(c.toDataURL('image/jpeg',.74));}; img.onerror=reject; img.src=r.result;}; r.onerror=reject; r.readAsDataURL(file); }); }
+    $('#photoInput').onchange = async (e) => { const memo=$('#photoMemo').value.trim()||'사진 기록'; for(const file of e.target.files){ const dataUrl=await resize(file); addRecord({type:'사진', title:memo, body:file.name, image:dataUrl}); } $('#photoInput').value=''; $('#photoMemo').value=''; showTab('timeline'); };
+    function render(){ const list=records(); $('#summaryText').textContent = `총 ${list.length}개 기록 · 사진 ${list.filter(x=>x.type==='사진').length}개 · 메모 ${list.filter(x=>x.type==='메모').length}개`; const box=$('#timelineList'); box.replaceChildren(); if(!list.length){ box.innerHTML='<div class="empty-state"><strong>아직 기록이 없습니다.</strong><p>메모나 사진을 추가하면 여기에 쌓입니다.</p></div>'; return; } list.forEach(item=>{ const card=document.createElement('article'); card.className='timeline-card'; card.innerHTML=`<div class="timeline-meta"><span>${item.type}</span><small>${fmt(item.createdAt)}</small></div><h3>${item.title}</h3>${item.body?`<p>${item.body}</p>`:''}`; if(item.image){ const img=document.createElement('img'); img.src=item.image; img.alt=item.title; card.appendChild(img); } box.appendChild(card); }); }
+    $('#exportBtn').onclick = () => { const blob=new Blob([JSON.stringify({exportedAt:now(), records:records()},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='japan-workshop-emergency-records.json'; a.click(); URL.revokeObjectURL(a.href); };
+    $('#importInput').onchange = async (e) => { const f=e.target.files[0]; if(!f) return; const json=JSON.parse(await f.text()); save(Array.isArray(json)?json:(json.records||[])); e.target.value=''; };
+    render();
+  </script>
+</body>
+</html>
