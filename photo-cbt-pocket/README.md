@@ -4,24 +4,20 @@
 
 ## 접속
 
-- GitHub Pages: https://kyungminkim11.github.io/japan-workshop-schedule/photo-cbt-pocket/
-- 저장소 경로: `photo-cbt-pocket/`
+- 전체 앱: https://kyungminkim11.github.io/japan-workshop-schedule/photo-cbt-pocket/
+- 사진사·이론 강화 v8: https://kyungminkim11.github.io/japan-workshop-schedule/photo-cbt-pocket/theory-v8.html
 
-## 사용 방법
+## v8 강화 사항
 
-1. 온라인 링크에 접속합니다.
-2. 모바일에서는 브라우저 메뉴에서 홈 화면에 추가합니다.
-3. 한 번 접속 후에는 서비스 워커 캐시를 통해 오프라인 재접속을 지원합니다.
-4. 완전한 오프라인 파일이 필요하면 단일 HTML 파일을 다운로드해 Chrome, Edge, 삼성 인터넷에서 직접 엽니다.
+- 카메라 옵스큐라, 은염, 잠상, 현상·정착 원리
+- 니엡스·헬리오그래피, 다게르·다게레오타입, 탈보트·칼로타입 비교
+- 습판, 건판, 롤필름, 컬러 사진 흐름
+- 사진의 기록성·표현성, 픽토리얼리즘, 스트레이트 포토그래피, 다큐멘터리/보도사진
+- 이론 원리 CBT 문항 추가
 
-## 주요 기능
+## 오프라인 사용
 
-- 개념 학습
-- 최신 사례 학습
-- CBT 풀이
-- 오답 저장 및 오답 재풀이
-- 실제 CBT/PDF 복사문 가져오기
-- 노트북·태블릿·폰 반응형 UI
+온라인 페이지를 한 번 열어둔 뒤 브라우저에서 저장하거나, 단일 HTML 파일을 다운로드해 Chrome, Edge, 삼성 인터넷에서 직접 열면 됩니다.
 
 ## 참고
 
