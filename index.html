@@ -3,18 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>일본 워크샵 보안 일정</title>
+  <title>일본 워크샵 앱</title>
   <meta name="description" content="초대 코드로만 접근하는 일본 워크샵 일정, 기록, 사진, 위치 체크인 웹앱" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#f6f8fb" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f766e'/%3E%3Cpath d='M17 35h30M20 24h24M24 46h16' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css?v=20260616-expense-1" />
+  <link rel="stylesheet" href="style.css?v=20260616-appshell-1" />
 </head>
 <body>
   <header class="app-header">
     <div>
-      <p class="eyebrow">Private Japan Workshop</p>
-      <h1>일본 워크샵 보안 일정</h1>
-      <p class="sub">초대받은 사람만 볼 수 있는 일정 · 기록 · 체크인</p>
+      <p class="eyebrow">Japan Workshop</p>
+      <h1>워크샵 기록 앱</h1>
+      <p class="sub">일정 · 체크인 · 사진 · 지출</p>
     </div>
     <div class="session-card" aria-live="polite">
       <span id="sessionLabel">접속 필요</span>
@@ -62,25 +63,10 @@
       <p id="loginMessage" class="message" role="status"></p>
     </section>
 
-    <section id="appPanel" hidden>
-      <nav class="tabs" id="dayTabs" aria-label="일자 선택"></nav>
+    <section id="appPanel" class="app-shell" hidden>
+      <nav class="tabs" id="dayTabs" data-app-view="home schedule" aria-label="일자 선택"></nav>
 
-      <section class="panel today-card">
-        <div>
-          <h2 id="dayTitle">보안 일정</h2>
-          <p id="daySub" class="muted">접속 권한에 맞는 일정만 표시됩니다.</p>
-        </div>
-        <button id="refreshBtn" class="ghost" type="button">새로고침</button>
-      </section>
-
-      <nav class="mobile-hub" aria-label="빠른 이동">
-        <a href="#routePanel">동선</a>
-        <a href="#schedulePanel">일정</a>
-        <a class="admin-only" href="#expensePanel" hidden>지출</a>
-        <a href="#detailPanel">상세</a>
-      </nav>
-
-      <section class="panel route-panel" id="routePanel">
+      <section class="panel route-panel" id="routePanel" data-app-view="home">
         <div class="panel-title-row">
           <div>
             <h2>오늘 동선 지도</h2>
@@ -92,7 +78,44 @@
         <div id="routeStops" class="route-stops" aria-label="동선 순서"></div>
       </section>
 
-      <section id="familyStatusPanel" class="panel">
+      <section class="panel home-dashboard" id="homePanel" data-app-view="home">
+        <div class="home-topline">
+          <div>
+            <h2>오늘 바로 보기</h2>
+            <p id="homeDayLabel" class="muted">선택한 날짜의 핵심만 보여줍니다.</p>
+          </div>
+          <button id="homeRefreshBtn" class="ghost small" type="button">동기화</button>
+        </div>
+        <div class="home-progress">
+          <div>
+            <strong id="homeProgressLabel">진행률 계산 중</strong>
+            <span id="homeProgressSub">방문 완료 기준</span>
+          </div>
+          <div class="progress-track" aria-hidden="true"><span id="homeProgressBar"></span></div>
+        </div>
+        <button id="homeNextCard" class="next-stop-card" type="button">
+          <span id="homeNextMeta">다음 일정</span>
+          <strong id="homeNextTitle">일정을 불러오는 중</strong>
+          <small id="homeNextPlace">장소 정보가 여기에 표시됩니다.</small>
+        </button>
+        <div class="quick-action-grid" aria-label="빠른 기록">
+          <button id="quickScheduleBtn" class="ghost" type="button">일정</button>
+          <button id="quickCheckinBtn" type="button">체크인</button>
+          <button id="quickExpenseBtn" class="ghost admin-only" type="button" hidden>지출</button>
+          <button id="quickDetailBtn" class="ghost" type="button">상세</button>
+        </div>
+        <div id="homeStats" class="home-stats"></div>
+      </section>
+
+      <section class="panel today-card" data-app-view="schedule">
+        <div>
+          <h2 id="dayTitle">보안 일정</h2>
+          <p id="daySub" class="muted">접속 권한에 맞는 일정만 표시됩니다.</p>
+        </div>
+        <button id="refreshBtn" class="ghost" type="button">새로고침</button>
+      </section>
+
+      <section id="familyStatusPanel" class="panel" data-app-view="home">
         <div class="panel-title-row">
           <div>
             <h2>공유 상태</h2>
@@ -109,7 +132,18 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel home-recent-panel" id="homeRecentPanel" data-app-view="home">
+        <div class="panel-title-row">
+          <div>
+            <h2>최근 기록</h2>
+            <p class="muted">체크인, 사진, 공유 상태를 짧게 확인합니다.</p>
+          </div>
+          <button id="openTimelineBtn" class="ghost small" type="button">전체 보기</button>
+        </div>
+        <div id="homeTimelinePreview" class="home-timeline-preview"></div>
+      </section>
+
+      <section class="panel" id="timelinePanel" data-app-view="timeline">
         <div class="panel-title-row">
           <div>
             <h2>메인 타임라인</h2>
@@ -119,7 +153,7 @@
         <div id="timelineList" class="timeline-list"></div>
       </section>
 
-      <section class="panel admin-only" id="adminDataPanel" hidden>
+      <section class="panel admin-only" id="adminDataPanel" data-app-view="settings" hidden>
         <h2>노트북 정리 / 백업</h2>
         <p class="muted">저녁에 노트북에서 접속해 자료를 내려받거나, 일정 JSON을 가져올 수 있습니다.</p>
         <div class="button-row">
@@ -133,7 +167,20 @@
         <p id="dataMessage" class="message" role="status"></p>
       </section>
 
-      <section class="panel admin-only" id="adminAccessPanel" hidden>
+      <section class="panel app-settings-panel" id="settingsPanel" data-app-view="settings">
+        <div class="panel-title-row">
+          <div>
+            <h2>설정</h2>
+            <p class="muted">현재 접속 상태와 앱 동기화를 관리합니다.</p>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button id="settingsRefreshBtn" class="ghost" type="button">데이터 새로고침</button>
+          <button id="settingsLogoutBtn" class="ghost danger" type="button">로그아웃</button>
+        </div>
+      </section>
+
+      <section class="panel admin-only" id="adminAccessPanel" data-app-view="settings" hidden>
         <div class="panel-title-row">
           <div>
             <h2>접속 코드 관리</h2>
@@ -174,7 +221,7 @@
         <p id="accessMessage" class="message" role="status"></p>
       </section>
 
-      <section class="panel admin-only" id="adminSchedulePanel" hidden>
+      <section class="panel admin-only" id="adminSchedulePanel" data-app-view="settings" hidden>
         <div class="panel-title-row">
           <div>
             <h2>일정 관리</h2>
@@ -202,7 +249,7 @@
         <p id="scheduleEditorMessage" class="message" role="status"></p>
       </section>
 
-      <section class="panel admin-only expense-panel" id="expensePanel" hidden>
+      <section class="panel admin-only expense-panel" id="expensePanel" data-app-view="timeline" hidden>
         <div class="panel-title-row">
           <div>
             <h2>지출 기록</h2>
@@ -245,7 +292,7 @@
         <p id="expenseMessage" class="message" role="status"></p>
       </section>
 
-      <section class="content-grid">
+      <section class="content-grid" data-app-view="schedule">
         <div>
           <section class="panel" id="schedulePanel">
             <h2>일정</h2>
@@ -279,12 +326,31 @@
           <div id="detailContent"></div>
         </aside>
       </section>
+
+      <nav class="bottom-nav" id="bottomNav" aria-label="앱 네비게이션">
+        <button type="button" data-view="home" aria-label="홈">
+          <span class="nav-icon">⌂</span>
+          <span>홈</span>
+        </button>
+        <button type="button" data-view="schedule" aria-label="일정">
+          <span class="nav-icon">□</span>
+          <span>일정</span>
+        </button>
+        <button type="button" data-view="timeline" aria-label="타임라인">
+          <span class="nav-icon">○</span>
+          <span>타임라인</span>
+        </button>
+        <button type="button" data-view="settings" aria-label="설정">
+          <span class="nav-icon">⚙</span>
+          <span>설정</span>
+        </button>
+      </nav>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20260616-expense-1"></script>
-  <script src="app.js?v=20260616-expense-1"></script>
+  <script src="config.js?v=20260616-appshell-1"></script>
+  <script src="app.js?v=20260616-appshell-1"></script>
 </body>
 </html>

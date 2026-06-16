@@ -39,6 +39,7 @@ let token = storage.get("workshopToken");
 let role = storage.get("workshopRole");
 let selectedDay = "0617";
 let selectedItemId = "";
+let activeView = storage.get("workshopView") || "home";
 let state = typeof structuredClone === "function" ? structuredClone(DEFAULT_STATE) : JSON.parse(JSON.stringify(DEFAULT_STATE));
 let photos = [];
 let accessOverview = { codes: [], recentAccess: [] };
@@ -215,6 +216,30 @@ async function saveState() {
 async function withSave(message, action) { try { await action(); render(); flash(message); } catch (error) { alert(error.message); } }
 function flash(message) { if (!message) return; const el = $("#sessionLabel"); const old = el.textContent; el.textContent = message; setTimeout(() => { el.textContent = ROLE_LABELS[role] || old; }, 1400); }
 
+function setActiveView(view, options = {}) {
+  activeView = ["home", "schedule", "timeline", "settings"].includes(view) ? view : "home";
+  storage.set("workshopView", activeView);
+  syncAppView();
+  if (activeView === "home" && routeMap) setTimeout(() => routeMap.invalidateSize(), 90);
+  if (options.target) setTimeout(() => $(options.target)?.scrollIntoView({ behavior: "smooth", block: "start" }), 90);
+}
+function viewAllows(el) {
+  const views = safeText(el.dataset.appView).split(/\s+/).filter(Boolean);
+  if (views.length && !views.includes(activeView)) return false;
+  if (el.classList.contains("admin-only") && role !== "admin") return false;
+  if (el.id === "girlfriendPanel" && !["admin", "girlfriend"].includes(role)) return false;
+  return true;
+}
+function syncAppView() {
+  $$("[data-app-view]").forEach((el) => { el.hidden = !viewAllows(el); });
+  $$("#bottomNav [data-view]").forEach((button) => {
+    const isActive = button.dataset.view === activeView;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-current", isActive ? "page" : "false");
+  });
+  document.body.dataset.activeView = activeView;
+}
+
 function render() {
   const configured = hasConfig();
   $("#setupWarning").hidden = configured;
@@ -226,12 +251,52 @@ function render() {
   if (!token) return;
   $$(".admin-only").forEach((el) => { el.hidden = role !== "admin"; });
   const gfPanel = $("#girlfriendPanel"); if (gfPanel) gfPanel.hidden = !["admin", "girlfriend"].includes(role);
-  renderTabs(); renderRouteMap(); renderStatus(); renderTimeline(); renderAccessOverview(); renderSchedule(); renderScheduleEditor(); renderExpenses(); renderShopping(); renderGirlfriend(); renderDetail();
+  renderTabs(); renderHome(); renderRouteMap(); renderStatus(); renderTimeline(); renderHomeTimelinePreview(); renderAccessOverview(); renderSchedule(); renderScheduleEditor(); renderExpenses(); renderShopping(); renderGirlfriend(); renderDetail(); syncAppView();
 }
 function renderTabs() {
   const box = $("#dayTabs"); box.replaceChildren();
   DAYS.forEach((day) => { const b = document.createElement("button"); b.type = "button"; b.textContent = day.label; b.className = day.id === selectedDay ? "active" : ""; b.onclick = () => { selectedDay = day.id; selectedItemId = ""; render(); }; box.appendChild(b); });
   const day = DAYS.find((d) => d.id === selectedDay); $("#dayTitle").textContent = day?.title || "보안 일정"; $("#daySub").textContent = day?.sub || "";
+}
+function nextScheduleItem(items = dayItems()) {
+  return items.find((item) => !state.visitDone[item.id]) || items[0] || null;
+}
+function renderHome() {
+  const day = DAYS.find((d) => d.id === selectedDay), items = dayItems(), done = items.filter((item) => state.visitDone[item.id]).length;
+  const next = nextScheduleItem(items);
+  const progress = items.length ? Math.round(done / items.length * 100) : 0;
+  const dayLabel = $("#homeDayLabel"); if (dayLabel) dayLabel.textContent = day ? `${day.title} · ${items.length}개 일정` : "선택한 날짜";
+  const progressLabel = $("#homeProgressLabel"); if (progressLabel) progressLabel.textContent = items.length ? `${done}/${items.length} 방문 완료` : "등록된 일정 없음";
+  const progressSub = $("#homeProgressSub"); if (progressSub) progressSub.textContent = `${progress}% 진행 · 새로고침하면 다른 기기 기록도 반영됩니다.`;
+  const bar = $("#homeProgressBar"); if (bar) bar.style.width = `${progress}%`;
+  const meta = $("#homeNextMeta"), title = $("#homeNextTitle"), place = $("#homeNextPlace"), card = $("#homeNextCard");
+  if (next) {
+    const type = getScheduleTypeMeta(next);
+    if (meta) meta.textContent = `${next.time} · ${type.icon} ${type.label}`;
+    if (title) title.textContent = next.title;
+    if (place) place.textContent = next.place;
+    if (card) { card.disabled = false; card.onclick = () => selectItem(next.id, true); }
+  } else {
+    if (meta) meta.textContent = "다음 일정";
+    if (title) title.textContent = "등록된 일정이 없습니다";
+    if (place) place.textContent = "설정에서 일정을 추가하거나 다른 날짜를 선택하세요.";
+    if (card) { card.disabled = true; card.onclick = null; }
+  }
+  const stats = $("#homeStats");
+  if (stats) {
+    stats.replaceChildren();
+    [
+      { label: "체크인", value: state.checkins.length },
+      { label: "사진", value: photos.length },
+      { label: "완료", value: `${progress}%` },
+      ...(role === "admin" ? [{ label: "지출", value: state.expenses.length }] : [])
+    ].forEach((item) => {
+      const chip = document.createElement("div");
+      chip.className = "home-stat";
+      chip.innerHTML = `<strong>${item.value}</strong><span>${item.label}</span>`;
+      stats.appendChild(chip);
+    });
+  }
 }
 function renderRouteMap() {
   const items = dayItems(), points = items.map(coords).filter(Boolean);
@@ -267,7 +332,12 @@ function renderStatus() {
   box.append(strong, memo, small);
   if (role === "admin") { $("#statusText").value = s.text || ""; $("#statusMemo").value = s.memo || ""; }
 }
-function selectItem(id, scroll = false) { selectedItemId = id; render(); if (scroll) setTimeout(() => $("#detailPanel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80); }
+function selectItem(id, scroll = false) {
+  selectedItemId = id;
+  if (scroll) { activeView = "schedule"; storage.set("workshopView", activeView); }
+  render();
+  if (scroll) setTimeout(() => $("#detailPanel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+}
 function renderSchedule() {
   const list = $("#scheduleList"); list.replaceChildren(); const items = dayItems();
   if (!items.length) { const e = document.createElement("div"); e.className = "empty-state"; e.innerHTML = "<strong>등록된 일정이 없습니다.</strong><p>관리자 모드에서 일정을 추가하거나 JSON을 가져오세요.</p>"; list.appendChild(e); return; }
@@ -317,15 +387,32 @@ function clearScheduleForm() { selectedItemId = ""; render(); setScheduleMessage
 async function deleteScheduleItem() { const item = selectedItem(); if (!item || !confirm("선택한 일정을 삭제할까요?")) return; await saveSchedule(state.schedule.filter((i) => i.id !== item.id), "일정 삭제 완료", ""); }
 async function moveScheduleItem(dir) { const item = selectedItem(); if (!item) return; const idxs = state.schedule.map((i, idx) => i.day === item.day ? idx : -1).filter((v) => v >= 0); const pos = idxs.findIndex((idx) => state.schedule[idx].id === item.id), nextPos = pos + dir; if (nextPos < 0 || nextPos >= idxs.length) return setScheduleMessage("더 이동할 수 없습니다.", "warn"); const a = idxs[pos], b = idxs[nextPos]; [state.schedule[a], state.schedule[b]] = [state.schedule[b], state.schedule[a]]; await saveSchedule(state.schedule, "순서 변경 완료", item.id); }
 
-function renderTimeline() {
-  const box = $("#timelineList"); if (!box) return; box.replaceChildren(); const items = [];
+function collectTimelineItems() {
+  const items = [];
   const st = state.familyStatus || {}; if (st.updatedAt && (st.text || st.memo)) items.push({ type: "상태", at: st.updatedAt, title: st.text || "공유 상태", text: st.memo });
   state.checkins.forEach((c) => { const item = itemById(c.itemId); items.push({ type: "체크인", at: c.createdAt, title: `${c.title || item?.title || "위치"} 체크인`, text: c.place || item?.place || "", map: Number.isFinite(Number(c.lat)) ? `https://maps.google.com/?q=${c.lat},${c.lng}` : "" }); });
   photos.forEach((p) => { const item = itemById(p.itemId || p.item_id); items.push({ type: "사진", at: p.createdAt || p.created_at, title: item?.title ? `${item.title} 사진` : "사진 업로드", text: item?.place || p.fileName || p.file_name || "", image: p.dataUrl || p.data_url }); });
   if (role === "admin") Object.entries(state.notes).forEach(([id, note]) => { if (safeText(note)) { const item = itemById(id); items.push({ type: "비공개 메모", at: nowIso(), title: item?.title ? `${item.title} 메모` : "관리자 메모", text: safeText(note), private: true }); } });
   items.sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0));
+  return items;
+}
+function renderTimelineCard(box, it, compact = false) {
+  const c = document.createElement("article");
+  c.className = `timeline-card ${it.private ? "private" : ""} ${compact ? "compact" : ""}`;
+  c.innerHTML = `<div class="timeline-meta"><span>${it.type}</span><small>${fmt(it.at)}</small></div><h3>${it.title || "기록"}</h3>${it.text ? `<p>${it.text.length > (compact ? 90 : 220) ? `${it.text.slice(0, compact ? 90 : 220)}…` : it.text}</p>` : ""}`;
+  if (it.image && !compact) { const img = document.createElement("img"); img.src = it.image; img.alt = it.title || "사진"; img.loading = "lazy"; c.appendChild(img); }
+  if (it.map && !compact) { const a = document.createElement("a"); a.className = "ghost small"; a.href = it.map; a.target = "_blank"; a.rel = "noreferrer"; a.textContent = "지도 열기"; c.appendChild(a); }
+  box.appendChild(c);
+}
+function renderHomeTimelinePreview() {
+  const box = $("#homeTimelinePreview"); if (!box) return; box.replaceChildren(); const items = collectTimelineItems();
+  if (!items.length) { const e = document.createElement("div"); e.className = "empty-state"; e.innerHTML = "<strong>아직 기록이 없습니다.</strong><p>체크인이나 사진을 남기면 홈에도 바로 보입니다.</p>"; box.appendChild(e); return; }
+  items.slice(0, 3).forEach((it) => renderTimelineCard(box, it, true));
+}
+function renderTimeline() {
+  const box = $("#timelineList"); if (!box) return; box.replaceChildren(); const items = collectTimelineItems();
   if (!items.length) { const e = document.createElement("div"); e.className = "empty-state"; e.innerHTML = "<strong>아직 타임라인 기록이 없습니다.</strong><p>사진 업로드, 메모 저장, 위치 체크인을 하면 여기에 모입니다.</p>"; box.appendChild(e); return; }
-  items.slice(0, 40).forEach((it) => { const c = document.createElement("article"); c.className = `timeline-card ${it.private ? "private" : ""}`; c.innerHTML = `<div class="timeline-meta"><span>${it.type}</span><small>${fmt(it.at)}</small></div><h3>${it.title || "기록"}</h3>${it.text ? `<p>${it.text.length > 220 ? `${it.text.slice(0, 220)}…` : it.text}</p>` : ""}`; if (it.image) { const img = document.createElement("img"); img.src = it.image; img.alt = it.title || "사진"; img.loading = "lazy"; c.appendChild(img); } if (it.map) { const a = document.createElement("a"); a.className = "ghost small"; a.href = it.map; a.target = "_blank"; a.rel = "noreferrer"; a.textContent = "지도 열기"; c.appendChild(a); } box.appendChild(c); });
+  items.slice(0, 40).forEach((it) => renderTimelineCard(box, it));
 }
 function renderAccessOverview() {
   if (role !== "admin") return; const codeBox = $("#accessOverview"), logBox = $("#accessLogList");
@@ -441,7 +528,7 @@ function openExpenseForItem(item) {
   $("#expenseDateInput").value = scheduleDateValue(item.day);
   if (!$("#expenseTitleInput").value.trim()) $("#expenseTitleInput").value = item.title;
   renderExpenseScheduleOptions(item.id); $("#expenseScheduleInput").value = item.id;
-  $("#expensePanel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  setActiveView("timeline", { target: "#expensePanel" });
 }
 
 function renderDetail() {
@@ -473,6 +560,15 @@ async function importScheduleFile(file) { if (!file || role !== "admin") return;
 
 function bind() {
   $("#loginForm").onsubmit = login; $("#logoutBtn").onclick = logout; $("#refreshBtn").onclick = () => loadState(true);
+  $("#homeRefreshBtn").onclick = () => loadState(true);
+  $("#settingsRefreshBtn").onclick = () => loadState(true);
+  $("#settingsLogoutBtn").onclick = logout;
+  $$("#bottomNav [data-view]").forEach((button) => { button.onclick = () => setActiveView(button.dataset.view); });
+  $("#openTimelineBtn").onclick = () => setActiveView("timeline");
+  $("#quickScheduleBtn").onclick = () => setActiveView("schedule", { target: "#schedulePanel" });
+  $("#quickDetailBtn").onclick = () => { const item = selectedItem() || nextScheduleItem(); if (item) selectItem(item.id, true); else setActiveView("schedule", { target: "#schedulePanel" }); };
+  $("#quickCheckinBtn").onclick = () => { const item = selectedItem() || nextScheduleItem(); if (item) checkin(item); else alert("체크인할 일정이 없습니다."); };
+  $("#quickExpenseBtn").onclick = () => { const item = selectedItem() || nextScheduleItem(); if (item) openExpenseForItem(item); else setActiveView("timeline", { target: "#expensePanel" }); };
   $("#saveStatusBtn").onclick = async () => { state.familyStatus = { text: $("#statusText").value.trim(), memo: $("#statusMemo").value.trim(), updatedAt: nowIso() }; await withSave("상태 저장 완료", () => saveState()); };
   $("#adminPinForm").onsubmit = (e) => { e.preventDefault(); updateAccessCode("admin"); };
   $("#girlfriendPinForm").onsubmit = (e) => { e.preventDefault(); updateAccessCode("girlfriend"); };
