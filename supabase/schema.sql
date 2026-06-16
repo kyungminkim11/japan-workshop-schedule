@@ -96,6 +96,7 @@ revoke all on sequence public.workshop_access_logs_id_seq from anon, authenticat
 insert into public.workshop_state (id, data) values ('main', '{}'::jsonb) on conflict (id) do nothing;
 update public.workshop_state set data = jsonb_set(coalesce(data, '{}'::jsonb), '{notes}', coalesce(data->'notes', '{}'::jsonb), true) where id = 'main';
 update public.workshop_state set data = jsonb_set(data, '{schedule}', case when jsonb_typeof(data->'schedule') = 'array' then data->'schedule' else '[]'::jsonb end, true) where id = 'main';
+update public.workshop_state set data = jsonb_set(data, '{expenses}', case when jsonb_typeof(data->'expenses') = 'array' then data->'expenses' else '[]'::jsonb end, true) where id = 'main';
 update public.workshop_state set data = jsonb_set(data, '{shoppingItems}', case when jsonb_typeof(data->'shoppingItems') = 'array' then data->'shoppingItems' else '[]'::jsonb end, true) where id = 'main';
 update public.workshop_state set data = jsonb_set(data, '{shopping}', coalesce(data->'shopping', '{}'::jsonb), true) where id = 'main';
 update public.workshop_state set data = jsonb_set(data, '{girlfriendRequests}', case when jsonb_typeof(data->'girlfriendRequests') = 'array' then data->'girlfriendRequests' else '[]'::jsonb end, true) where id = 'main';
@@ -222,6 +223,7 @@ begin
   v_clean := jsonb_build_object(
     'notes', case when jsonb_typeof(v_input->'notes') = 'object' then v_input->'notes' else '{}'::jsonb end,
     'schedule', case when jsonb_typeof(v_input->'schedule') = 'array' then v_input->'schedule' else '[]'::jsonb end,
+    'expenses', case when jsonb_typeof(v_input->'expenses') = 'array' then v_input->'expenses' else '[]'::jsonb end,
     'shoppingItems', case when jsonb_typeof(v_input->'shoppingItems') = 'array' then v_input->'shoppingItems' else '[]'::jsonb end,
     'shopping', case when jsonb_typeof(v_input->'shopping') = 'object' then v_input->'shopping' else '{}'::jsonb end,
     'girlfriendRequests', case when jsonb_typeof(v_input->'girlfriendRequests') = 'array' then v_input->'girlfriendRequests' else '[]'::jsonb end,
@@ -248,7 +250,13 @@ begin
   if v_role <> 'admin' then return jsonb_build_object('ok', false, 'message', '관리자만 접속 코드를 변경할 수 있습니다.'); end if;
   if v_target_role not in ('admin', 'girlfriend', 'family') then return jsonb_build_object('ok', false, 'message', '접속 코드 역할이 올바르지 않습니다.'); end if;
   if length(v_code) < 4 or length(v_code_raw) > 64 then return jsonb_build_object('ok', false, 'message', '접속 코드는 공백 제외 4자 이상, 전체 64자 이하로 입력해주세요.'); end if;
-  update public.workshop_pins set code_hash = extensions.crypt(v_target_role || ':' || v_code, extensions.gen_salt('bf', 12)), pin_hash = null, display_code = v_code_raw, updated_at = now() where role = v_target_role;
+  insert into public.workshop_pins(role, code_hash, pin_hash, display_code, updated_at)
+  values (v_target_role, extensions.crypt(v_target_role || ':' || v_code, extensions.gen_salt('bf', 12)), null, v_code_raw, now())
+  on conflict (role) do update
+    set code_hash = excluded.code_hash,
+        pin_hash = null,
+        display_code = excluded.display_code,
+        updated_at = now();
   delete from public.workshop_sessions where role = v_target_role;
   return jsonb_build_object('ok', true, 'role', v_target_role, 'updatedAt', now());
 end;

@@ -7,7 +7,7 @@
   <meta name="description" content="초대 코드로만 접근하는 일본 워크샵 일정, 기록, 사진, 위치 체크인 웹앱" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css?v=20260616-secure-2" />
+  <link rel="stylesheet" href="style.css?v=20260616-expense-1" />
 </head>
 <body>
   <header class="app-header">
@@ -73,7 +73,14 @@
         <button id="refreshBtn" class="ghost" type="button">새로고침</button>
       </section>
 
-      <section class="panel route-panel">
+      <nav class="mobile-hub" aria-label="빠른 이동">
+        <a href="#routePanel">동선</a>
+        <a href="#schedulePanel">일정</a>
+        <a class="admin-only" href="#expensePanel" hidden>지출</a>
+        <a href="#detailPanel">상세</a>
+      </nav>
+
+      <section class="panel route-panel" id="routePanel">
         <div class="panel-title-row">
           <div>
             <h2>오늘 동선 지도</h2>
@@ -176,6 +183,7 @@
         </div>
         <form id="scheduleEditorForm" class="schedule-editor">
           <label>날짜<select id="scheduleDayInput"></select></label>
+          <label>분류<select id="scheduleTypeInput"></select></label>
           <label>시간<input id="scheduleTimeInput" placeholder="예: 15:00 또는 16:00~18:30" /></label>
           <label class="wide">제목<input id="scheduleTitleInput" placeholder="예: 호텔 체크인" /></label>
           <label class="wide">장소<input id="schedulePlaceInput" placeholder="예: Royal Park Hotel Iconic Tokyo Shiodome" /></label>
@@ -194,9 +202,52 @@
         <p id="scheduleEditorMessage" class="message" role="status"></p>
       </section>
 
+      <section class="panel admin-only expense-panel" id="expensePanel" hidden>
+        <div class="panel-title-row">
+          <div>
+            <h2>지출 기록</h2>
+            <p id="expenseSummaryText" class="muted">식사, 구매, 회사 지원 기록</p>
+          </div>
+        </div>
+        <form id="expenseForm" class="expense-editor">
+          <label>날짜<input id="expenseDateInput" type="date" /></label>
+          <label>
+            결제/태그
+            <select id="expensePaymentInput">
+              <option value="cash">현금</option>
+              <option value="card">카드</option>
+              <option value="company">회사 지원</option>
+              <option value="other">기타</option>
+              <option value="custom">직접입력</option>
+            </select>
+          </label>
+          <label class="wide" id="expenseCustomLabel" hidden>직접입력 태그<input id="expenseCustomInput" placeholder="예: 교통비, 선물, 개인카드" /></label>
+          <label>금액<input id="expenseAmountInput" type="number" min="0" step="1" inputmode="decimal" placeholder="예: 3200" /></label>
+          <label>
+            통화
+            <select id="expenseCurrencyInput">
+              <option value="JPY">JPY</option>
+              <option value="KRW">KRW</option>
+              <option value="USD">USD</option>
+            </select>
+          </label>
+          <label class="wide">항목<input id="expenseTitleInput" placeholder="예: 점심, 잉크 구매, 택시" /></label>
+          <label class="wide">관련 일정<select id="expenseScheduleInput"></select></label>
+          <label class="wide">메모<textarea id="expenseMemoInput" placeholder="누구와 먹었는지, 회사 지원 여부, 환급 참고사항 등을 적어두세요."></textarea></label>
+          <label class="wide">영수증/기타 사진<input id="expenseReceiptInput" type="file" accept="image/*" multiple /></label>
+          <div class="button-row wide">
+            <button id="expenseAddBtn" type="submit">지출 저장</button>
+            <button id="expenseClearBtn" class="ghost" type="button">입력 비우기</button>
+          </div>
+        </form>
+        <div id="expenseTotals" class="expense-totals"></div>
+        <div id="expenseList" class="expense-list"></div>
+        <p id="expenseMessage" class="message" role="status"></p>
+      </section>
+
       <section class="content-grid">
         <div>
-          <section class="panel">
+          <section class="panel" id="schedulePanel">
             <h2>일정</h2>
             <div id="scheduleList" class="schedule-list"></div>
           </section>
@@ -233,7 +284,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20260616-secure-2"></script>
-  <script src="app.js?v=20260616-secure-2"></script>
+  <script src="config.js?v=20260616-expense-1"></script>
+  <script src="app.js?v=20260616-expense-1"></script>
 </body>
 </html>
