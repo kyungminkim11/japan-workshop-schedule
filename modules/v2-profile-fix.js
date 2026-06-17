@@ -1,0 +1,1 @@
+(function boot(){const V2=window.WorkshopV2;if(!V2)return setTimeout(boot,80);function hide(){if(V2.actualRole()==='admin'){const modal=document.getElementById('v2ProfileModal');if(modal)modal.hidden=true}}V2.onRender(hide);hide()})();
