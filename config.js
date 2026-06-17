@@ -44,6 +44,7 @@ window.WORKSHOP_SUPABASE = {
   const scripts = [
     "media-export-patch.js?v=20260617-media-1",
     "comment-request-patch.js?v=20260617-comment-1",
+    "free-post-patch.js?v=20260617-post-1",
     "go.js?v=20260617-quick-1"
   ];
 
