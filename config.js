@@ -52,6 +52,8 @@ window.WORKSHOP_SUPABASE = {
     "timeline-day-filter.js?v=20260617-day-1",
     "timeline-multi-download.js?v=20260617-download-1",
     "post-swipe-gallery.js?v=20260617-swipe-1",
+    "home-quick-composer.js?v=20260617-composer-1",
+    "new-content-alert.js?v=20260617-alert-1",
     "go.js?v=20260617-quick-1"
   ];
 
