@@ -47,6 +47,7 @@ window.WORKSHOP_SUPABASE = {
     "comment-request-patch.js?v=20260617-comment-1",
     "free-post-patch.js?v=20260617-post-1",
     "gallery-picker-patch.js?v=20260617-gallery-1",
+    "post-group-patch.js?v=20260617-group-1",
     "go.js?v=20260617-quick-1"
   ];
 
