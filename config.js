@@ -42,6 +42,7 @@ window.WORKSHOP_SUPABASE = {
 // Load optional feature patches after the base app has mounted.
 (function () {
   const scripts = [
+    "gift-list-patch.js?v=20260617-gifts-1",
     "media-export-patch.js?v=20260617-media-1",
     "comment-request-patch.js?v=20260617-comment-1",
     "free-post-patch.js?v=20260617-post-1",
