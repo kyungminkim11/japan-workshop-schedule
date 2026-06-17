@@ -1,5 +1,7 @@
-(function(){
-  const V2=window.WorkshopV2;if(!V2||typeof saveState!=='function')return;
+(function boot(){
+  const V2=window.WorkshopV2;
+  if(!V2||typeof saveState!=='function'||typeof V2.rawRpc!=='function')return setTimeout(boot,80);
+  if(window.__workshopAdminSaveFix)return;
   async function saveSnapshot(){
     const payload={
       notes:state.notes||{},
@@ -25,4 +27,5 @@
     return oldSaveState.apply(this,arguments);
   };
   V2.saveAdminSnapshot=saveSnapshot;
+  window.__workshopAdminSaveFix=true;
 })();
