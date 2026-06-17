@@ -49,6 +49,9 @@ window.WORKSHOP_SUPABASE = {
     "gallery-picker-patch.js?v=20260617-gallery-1",
     "post-group-patch.js?v=20260617-group-1",
     "post-single-view-patch.js?v=20260617-single-1",
+    "timeline-day-filter.js?v=20260617-day-1",
+    "timeline-multi-download.js?v=20260617-download-1",
+    "post-swipe-gallery.js?v=20260617-swipe-1",
     "go.js?v=20260617-quick-1"
   ];
 
