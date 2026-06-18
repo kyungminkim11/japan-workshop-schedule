@@ -55,6 +55,7 @@ window.WORKSHOP_SUPABASE = {
     "home-quick-composer.js?v=20260617-composer-1",
     "new-content-alert.js?v=20260617-alert-1",
     "quick-post-fab.js?v=20260617-fab-1",
+    "ux-polish.js?v=20260619-ux-1",
     "go.js?v=20260617-quick-1"
   ];
 
