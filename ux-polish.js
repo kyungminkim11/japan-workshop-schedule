@@ -1,6 +1,15 @@
 (function workshopUxPolish(){
   if (window.__workshopUxPolish) return;
 
+  function ensureStyle() {
+    if (document.querySelector('link[href*="ux-polish.css"]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'ux-polish.css?v=20260619-ux-1';
+    document.head.appendChild(link);
+  }
+  ensureStyle();
+
   const VIEW_COPY = {
     home: { eyebrow: 'HOME', title: '오늘 한눈에', text: '오늘 일정과 최근 기록을 빠르게 확인하세요.' },
     schedule: { eyebrow: 'SCHEDULE', title: '일정과 장소', text: '날짜별 일정과 장소 상세를 차례대로 확인하세요.' },
