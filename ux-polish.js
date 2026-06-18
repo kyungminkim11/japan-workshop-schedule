@@ -8,6 +8,9 @@
     link.href = 'ux-polish.css?v=20260619-ux-1';
     document.head.appendChild(link);
   }
+  function setText(element, value) {
+    if (element && element.textContent !== value) element.textContent = value;
+  }
   ensureStyle();
 
   const VIEW_COPY = {
@@ -55,9 +58,9 @@
     const view = document.body.dataset.activeView || 'home';
     const copy = VIEW_COPY[view] || VIEW_COPY.home;
     heading.dataset.view = view;
-    heading.querySelector('.ux-view-eyebrow').textContent = copy.eyebrow;
-    heading.querySelector('h2').textContent = copy.title;
-    heading.querySelector('p').textContent = copy.text;
+    setText(heading.querySelector('.ux-view-eyebrow'), copy.eyebrow);
+    setText(heading.querySelector('h2'), copy.title);
+    setText(heading.querySelector('p'), copy.text);
   }
 
   function decorateDayTabs() {
@@ -82,7 +85,7 @@
     nav.querySelectorAll('[data-view]').forEach((button) => {
       const view = button.dataset.view;
       const icon = button.querySelector('.nav-icon');
-      if (icon && NAV_ICONS[view]) icon.textContent = NAV_ICONS[view];
+      if (icon && NAV_ICONS[view]) setText(icon, NAV_ICONS[view]);
       const label = button.querySelector('span:last-child')?.textContent?.trim() || '탭';
       button.setAttribute('aria-label', `${label} 화면으로 이동하고 맨 위로`);
       button.setAttribute('title', `${label} · 누르면 맨 위로 이동`);
@@ -102,9 +105,9 @@
     if (!panel) return;
     panel.classList.add('ux-view-switch');
     const title = panel.querySelector('h2');
-    if (title) title.textContent = '화면 미리보기';
+    setText(title, '화면 미리보기');
     const description = panel.querySelector('p');
-    if (description) description.textContent = '관리자 · 가족 · 여자친구 화면을 확인합니다.';
+    setText(description, '관리자 · 가족 · 여자친구 화면을 확인합니다.');
   }
 
   function markReadableSections() {
