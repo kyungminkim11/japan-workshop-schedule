@@ -5,6 +5,7 @@
   let oldSyncAppView=null;
   let oldRender=null;
   let refreshTimer=0;
+  let applying=false;
 
   function installStyle(){
     if(document.getElementById('reportTabStyle'))return;
@@ -27,12 +28,11 @@
     document.head.appendChild(style);
   }
 
-  function reportPanel(){
-    return document.getElementById('reportProjectPanel');
-  }
+  function reportPanel(){return document.getElementById('reportProjectPanel')}
+  function reportButton(){return document.getElementById('reportNavButton')}
 
-  function reportButton(){
-    return document.getElementById('reportNavButton');
+  function setHidden(element,next){
+    if(element&&element.hidden!==next)element.hidden=next;
   }
 
   function updateHeading(){
@@ -42,10 +42,10 @@
     const eyebrow=heading.querySelector('.ux-view-eyebrow');
     const title=heading.querySelector('h2');
     const text=heading.querySelector('p');
-    if(eyebrow)eyebrow.textContent='REPORT';
-    if(title)title.textContent='방문 매장 보고서';
-    if(text)text.textContent='회사 워크샵으로 방문한 매장을 프로젝트별로 정리하세요.';
-    heading.dataset.view='reports';
+    if(eyebrow&&eyebrow.textContent!=='REPORT')eyebrow.textContent='REPORT';
+    if(title&&title.textContent!=='방문 매장 보고서')title.textContent='방문 매장 보고서';
+    if(text&&text.textContent!=='회사 워크샵으로 방문한 매장을 프로젝트별로 정리하세요.')text.textContent='회사 워크샵으로 방문한 매장을 프로젝트별로 정리하세요.';
+    if(heading.dataset.view!=='reports')heading.dataset.view='reports';
   }
 
   function updateBadge(){
@@ -55,7 +55,8 @@
     const cards=Array.from(panel.querySelectorAll('.report-project-card'));
     const unfinished=cards.filter(card=>!card.classList.contains('status-done')).length;
     const badge=button.querySelector('.report-nav-badge');
-    if(badge)badge.textContent=unfinished>0?String(Math.min(unfinished,99)):'';
+    const value=unfinished>0?String(Math.min(unfinished,99)):'';
+    if(badge&&badge.textContent!==value)badge.textContent=value;
     button.setAttribute('aria-label',unfinished?`보고서, 미완료 ${unfinished}개`:'보고서, 모두 작성 완료');
   }
 
@@ -89,32 +90,39 @@
   }
 
   function applyReportView(){
-    const panel=reportPanel();
-    const button=ensureButton();
-    if(panel)panel.dataset.appView='reports';
+    if(applying)return;
+    applying=true;
+    try{
+      const panel=reportPanel();
+      const button=ensureButton();
+      if(panel&&panel.dataset.appView!=='reports')panel.dataset.appView='reports';
 
-    if(role!=='admin'){
-      if(panel)panel.hidden=true;
-      return;
-    }
+      if(role!=='admin'){
+        setHidden(panel,true);
+        return;
+      }
 
-    document.querySelectorAll('#bottomNav [data-view]').forEach(navButton=>{
-      const selected=navButton.dataset.view===activeView;
-      navButton.classList.toggle('active',selected);
-      navButton.setAttribute('aria-current',selected?'page':'false');
-    });
-
-    if(activeView==='reports'){
-      document.body.dataset.activeView='reports';
-      document.querySelectorAll('[data-app-view]').forEach(element=>{
-        const views=String(element.dataset.appView||'').split(/\s+/).filter(Boolean);
-        element.hidden=!views.includes('reports');
+      document.querySelectorAll('#bottomNav [data-view]').forEach(navButton=>{
+        const selected=navButton.dataset.view===activeView;
+        navButton.classList.toggle('active',selected);
+        const current=selected?'page':'false';
+        if(navButton.getAttribute('aria-current')!==current)navButton.setAttribute('aria-current',current);
       });
-      if(panel)panel.hidden=false;
-      updateHeading();
-    }
 
-    if(button)updateBadge();
+      if(activeView==='reports'){
+        if(document.body.dataset.activeView!=='reports')document.body.dataset.activeView='reports';
+        document.querySelectorAll('[data-app-view]').forEach(element=>{
+          const views=String(element.dataset.appView||'').split(/\s+/).filter(Boolean);
+          setHidden(element,!views.includes('reports'));
+        });
+        setHidden(panel,false);
+        updateHeading();
+      }
+
+      if(button)updateBadge();
+    }finally{
+      applying=false;
+    }
   }
 
   function openReportsView(){
@@ -151,10 +159,7 @@
 
   function scheduleRefresh(){
     clearTimeout(refreshTimer);
-    refreshTimer=setTimeout(()=>{
-      ensureButton();
-      applyReportView();
-    },70);
+    refreshTimer=setTimeout(applyReportView,70);
   }
 
   function boot(){
