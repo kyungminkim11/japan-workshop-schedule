@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workshop-offline-v5';
+const CACHE_NAME = 'workshop-offline-v7';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const APP_SHELL = [
   './config.js',
   './app.js',
   './memo-patch.js',
+  './state-preservation-patch.js',
   './gift-list-patch.js',
   './media-export-patch.js',
   './comment-request-patch.js',
@@ -24,6 +25,9 @@ const APP_SHELL = [
   './quick-post-fab.js',
   './ux-polish.js',
   './report-projects.js',
+  './report-tab.js',
+  './report-all-places.js',
+  './report-media.js',
   './go.js',
   './site-icon.svg'
 ];
