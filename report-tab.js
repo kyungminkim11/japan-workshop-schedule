@@ -7,12 +7,17 @@
   let timer=0;
   let applying=false;
 
-  function loadAllPlaces(){
-    if(document.querySelector('script[src*="report-all-places.js"]'))return;
-    const script=document.createElement('script');
-    script.src='report-all-places.js?v=20260620-places-2';
-    script.async=false;
-    document.head.appendChild(script);
+  function loadReportFeatures(){
+    [
+      ['report-all-places.js','report-all-places.js?v=20260620-places-2'],
+      ['report-media.js','report-media.js?v=20260620-media-1']
+    ].forEach(([match,src])=>{
+      if(document.querySelector(`script[src*="${match}"]`))return;
+      const script=document.createElement('script');
+      script.src=src;
+      script.async=false;
+      document.head.appendChild(script);
+    });
   }
 
   function installStyle(){
@@ -141,7 +146,7 @@
   function boot(){
     if(typeof render!=='function'||!document.getElementById('bottomNav')){setTimeout(boot,80);return}
     installStyle();
-    loadAllPlaces();
+    loadReportFeatures();
     patchCore();
     ensureButton();
     applyView();
