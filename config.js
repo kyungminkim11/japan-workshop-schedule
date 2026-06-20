@@ -56,6 +56,7 @@ window.WORKSHOP_SUPABASE = {
     "new-content-alert.js?v=20260617-alert-1",
     "quick-post-fab.js?v=20260617-fab-1",
     "ux-polish.js?v=20260619-ux-1",
+    "report-projects.js?v=20260620-report-1",
     "go.js?v=20260617-quick-1"
   ];
 
