@@ -10,7 +10,7 @@
   function loadAllPlaces(){
     if(document.querySelector('script[src*="report-all-places.js"]'))return;
     const script=document.createElement('script');
-    script.src='report-all-places.js?v=20260620-places-1';
+    script.src='report-all-places.js?v=20260620-places-2';
     script.async=false;
     document.head.appendChild(script);
   }
@@ -25,7 +25,7 @@
       #reportNavButton .report-nav-badge{position:absolute;top:5px;left:calc(50% + 9px);display:grid;min-width:16px;height:16px;place-items:center;padding:0 4px;border:2px solid #fff;border-radius:999px;background:#e97967;color:#fff;font-size:9px;font-weight:900;line-height:1}
       #reportNavButton .report-nav-badge:empty{display:none}
       body[data-active-view="reports"] #quickPostFab,body[data-active-view="reports"] #quickPostFabFallback{display:none!important}
-      body[data-active-view="reports"] #reportProjectPanel{margin-top:10px}
+      body[data-active-view="reports"] #reportProjectPanel,body[data-active-view="reports"] #reportProjectPanel[hidden]{display:block!important;visibility:visible!important;margin-top:10px}
       @media(max-width:390px){#bottomNav.has-report-tab{gap:2px!important;padding-inline:5px!important}#bottomNav.has-report-tab button{font-size:10px!important;padding-inline:1px!important}#bottomNav.has-report-tab .nav-icon{font-size:19px!important}}
     `;
     document.head.appendChild(style);
@@ -104,6 +104,11 @@
         setHidden(root,false);
         updateHeading();
         window.WorkshopReports?.renderAllPlaces?.();
+        setTimeout(()=>{
+          const reportRoot=panel();
+          if(reportRoot)reportRoot.hidden=false;
+          window.WorkshopReports?.renderAllPlaces?.();
+        },120);
       }
       if(tab)updateBadge();
     }finally{applying=false}
