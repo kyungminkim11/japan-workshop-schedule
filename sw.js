@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workshop-offline-v7';
+const CACHE_NAME = 'workshop-offline-v8';
 const APP_SHELL = [
   './',
   './index.html',
@@ -25,6 +25,7 @@ const APP_SHELL = [
   './quick-post-fab.js',
   './ux-polish.js',
   './report-projects.js',
+  './kingdom-note-report-patch.js',
   './report-tab.js',
   './report-all-places.js',
   './report-media.js',
