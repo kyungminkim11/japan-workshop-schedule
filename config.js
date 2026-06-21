@@ -58,6 +58,7 @@ window.WORKSHOP_SUPABASE = {
     "ux-polish.js?v=20260619-ux-1",
     "report-projects.js?v=20260620-report-1",
     "kingdom-note-report-patch.js?v=20260622-kingdom-1",
+    "schedule-video-patch.js?v=20260622-video-1",
     "go.js?v=20260617-quick-1"
   ];
 
